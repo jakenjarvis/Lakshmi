@@ -1,8 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import discord
 import os
 import traceback
+from aiohttp import connector
 
-token = os.environ['DISCORD_TOKEN']
+token = ""
+try:
+    # Heroku環境
+    token = os.environ['DISCORD_TOKEN']
+except Exception as e:
+    # ローカル環境
+    with open(r"token.txt", "r", encoding="utf-8") as file:
+        token = file.read()
 
 client = discord.Client()
 
