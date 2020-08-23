@@ -31,6 +31,9 @@ character_command_not_found_dialogue = [
     "…今のは…？　今『くとぅるふ』の『るーるぶっく』を読んでるわ……。貴方達もやってる！？…私も探索したい…。",
     "…今のは何だろう…？　焼きリンゴも案外悪くないわね……あつ…。今度、貴方達にもおすそ分けしたい…。",
     "…今のは何だろう…？　私がファンブル連発したら『おはシュミ』と、いわれるのかしら…。私がファンブルの具現化なんて…やだ…。",
+    "…ん。エラーが発生したみたい。私が読める字で、書いてくれたのかな…？",
+    "…むぅ。貴方のせいで処理ができなかった。…どう責任取ってくれるの？",
+    "(ﾓｸﾞﾓｸﾞ)…林檎に夢中で、処理工程を見ていなかったけど…。エラーが起きているね。入力ミスが無いか見直してみて。",
 ]
 
 @bot.listen()
@@ -38,7 +41,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if bot.user in message.mentions: # 話しかけられたかの判定
-        await message.channel.send(f'{message.author.mention} ……ん？私を………読んだ？')
+        await message.channel.send(f'{message.author.mention} ……ん？私を………呼んだ？')
 
 @bot.event
 async def on_command_error(context, error):
