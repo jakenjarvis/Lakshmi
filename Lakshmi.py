@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 from LakshmiStorage import LakshmiStorage
-from LakshmiErrors import PermissionNotFound
+from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException
 
 bot = commands.Bot(command_prefix=':')
 bot.storage = LakshmiStorage()
@@ -20,6 +20,7 @@ extensions = [
 for extension in extensions:
     bot.load_extension(extension)
 
+# NOTE: キャラ設定：セリフ少な目で、おとなしい感じの、点々多めで、言い切りタイプ。一人称は「私」、語尾が「～ね」
 character_command_not_found_dialogue = [
     "…？　今のは、なんだろう？　…ところで今、アップルパイを焼いてるの、おひとついかが？",
     "…？　( ˘ω˘)ｽﾔｧ…あっ、いけない…寝てた…。なんか今、言われた気がするけど…なんだろう…？",
@@ -37,25 +38,29 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if bot.user in message.mentions: # 話しかけられたかの判定
-        await message.channel.send(f'{message.author.mention} ん？わたくしを呼びました？')
+        await message.channel.send(f'{message.author.mention} ……ん？私を………読んだ？')
 
 @bot.event
 async def on_command_error(context, error):
     # Throwしたいときは、以下のようにon_command_errorを呼び出す。
     # await self.bot.on_command_error(context, PermissionNotFound())
 
-    if isinstance(error, commands.CommandNotFound):
+    if isinstance(error, ArgumentOutOfRangeException):
+        await context.send(f'{context.author.mention} ごめんなさい……おっきくて、計算できないの……')
+
+    elif isinstance(error, PermissionNotFoundException):
+        await context.send(f'{context.author.mention} 貴方……権限が無いみたいよ………。')
+
+    elif isinstance(error, commands.CommandNotFound):
         message = random.choice(character_command_not_found_dialogue)
         await context.send(f'{context.author.mention} {message}')
-
-    elif isinstance(error, PermissionNotFound):
-        await context.send(f'{context.author.mention} あなたにはコマンドを実行する権限が無いようよ。')
 
     else:
         original_error = getattr(error, "original", error)
         error_message = ''.join(traceback.TracebackException.from_exception(original_error).format())
         error_message = "```py\n" + error_message + "\n```"
-        await context.send(error_message)
+        message = f'{context.author.mention}\n私の中で……何かが起こったようなの………。これを……開発者さんに知らせてあげて！\n{error_message}'
+        await context.send(message)
 
 
 token = ""

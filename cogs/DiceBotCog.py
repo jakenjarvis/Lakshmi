@@ -8,12 +8,18 @@ import random
 import mojimoji
 from discord.ext import commands
 
-from LakshmiErrors import PermissionNotFound
+from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException
 
 def replace_dice_string(match):
     result = ""
     number = int(match.group(2))
+    if number >= 100:  # ダイスの数の最大
+        raise ArgumentOutOfRangeException()
+
     surface = int(match.group(3))
+    if surface >= 65536: # ダイスの面の最大
+        raise ArgumentOutOfRangeException()
+
     result = "(" + "+".join(str(random.randint(1, surface)) for _ in range(number)) + ")"
     return result
 
@@ -42,7 +48,6 @@ class DiceBotCog(commands.Cog):
         print(command)
         processingFlag = False
         try:
-            # TODO: 返却文字数のチェック
             command_line = ""
             comment = ""
             dice_command = ""
@@ -97,9 +102,9 @@ class DiceBotCog(commands.Cog):
                     if conditional_expression != "":
                         judgment_string = str(total) + conditional_expression + comparison_value
                         if eval(judgment_string):
-                            judgment_result = " | Success!"
+                            judgment_result = " [成功] ○"
                         else:
-                            judgment_result = " | Failure!"
+                            judgment_result = " [失敗] ×"
 
                     # クリティカル判定（D100のみ）
                     critical_result = ""
@@ -107,20 +112,22 @@ class DiceBotCog(commands.Cog):
                     if match:
                         # 1D100 only
                         if total <= 5:
-                            critical_result = " 【 Critical! 】"
+                            critical_result = "【 Critical! 】"
                         elif total >= 96:
-                            critical_result = " 【  Fumble!  】"
+                            critical_result = "【  Fumble!  】"
 
-                    reply_message.append(f'{displayOneCommand} {comment} = {displayCalculation} = {str(total)}{judgment_result}{critical_result}')
+                    reply_message.append(f'⇒ {displayOneCommand} {comment}： {displayCalculation} = {str(total)}{judgment_result}{critical_result}')
                     processingFlag = True
 
+            # 処理後通知
             if processingFlag:
                 await context.send("\n".join(reply_message))
             else:
                 await self.bot.on_command_error(context, commands.CommandNotFound())
 
         except Exception as e:
-            await self.bot.on_command_error(context, commands.CommandNotFound())
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
 
     def normalize_commands(self, command):
         result = ""
