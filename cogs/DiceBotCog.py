@@ -93,7 +93,7 @@ class DiceBotCog(commands.Cog):
 
                     # ダイス本処理
                     calculation = DiceBotCog.REPLACE_DICE.sub(replace_dice_string, dice_command)
-                    total = math.ceil(eval(calculation)) # 小数点切り上げ
+                    total = math.ceil(self.execute_eval(calculation)) # 小数点切り上げ
                     displayOneCommand = replace_display_string(fixedOneCommand).lower()
                     displayCalculation = replace_display_string(calculation)
 
@@ -101,7 +101,7 @@ class DiceBotCog(commands.Cog):
                     judgment_result = ""
                     if conditional_expression != "":
                         judgment_string = str(total) + conditional_expression + comparison_value
-                        if eval(judgment_string):
+                        if self.execute_eval(judgment_string):
                             judgment_result = " [成功] ○"
                         else:
                             judgment_result = " [失敗] ×"
@@ -138,6 +138,14 @@ class DiceBotCog(commands.Cog):
         removal_blank_line = [row.strip() for row in split_command if row.strip() != ""]
         result = "\n".join(removal_blank_line)
         print(result)
+        return result
+
+    def execute_eval(self, formula):
+        result = None
+        try:
+            result = eval(formula)
+        except Exception as e:
+            raise commands.CommandNotFound()
         return result
 
 def setup(bot):
