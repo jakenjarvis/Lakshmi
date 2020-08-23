@@ -27,7 +27,7 @@ class DiceBotCog(commands.Cog):
     VALID_CHARACTERS = re.compile(r"^([-+*/a-zA-Z0-9\.)(<>= ])+$", re.IGNORECASE)
     VALID_COMMENT = re.compile(r"(#|＃)")
     VALID_COMPARISON = re.compile(r"([><=]+)", re.IGNORECASE)
-    VALID_PROCESS_CRITICAL = re.compile(r"^\dd100([=><]+[-+*/0-9\.]+)?$", re.IGNORECASE)
+    VALID_PROCESS_CRITICAL = re.compile(r"^1d100([=><]+[-+*/0-9\.]+)?$", re.IGNORECASE)
 
     def __init__(self, bot):
         self.bot = bot
@@ -105,7 +105,7 @@ class DiceBotCog(commands.Cog):
                     critical_result = ""
                     match = DiceBotCog.VALID_PROCESS_CRITICAL.search(fixedOneCommand)
                     if match:
-                        # D100 only
+                        # 1D100 only
                         if total <= 5:
                             critical_result = " 【 Critical! 】"
                         elif total >= 96:
