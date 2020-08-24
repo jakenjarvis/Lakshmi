@@ -65,6 +65,9 @@ async def on_command_error(context, error):
     elif isinstance(error, PermissionNotFoundException):
         await context.send(f'{context.author.mention} 貴方……権限が無いみたいよ………。')
 
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await context.send(f'{context.author.mention} ちょっと……これで………どうしろというの？')
+
     elif isinstance(error, commands.CommandNotFound):
         message = random.choice(character_command_not_found_dialogue)
         await context.send(f'{context.author.mention} {message}')
