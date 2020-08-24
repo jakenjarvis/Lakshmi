@@ -45,7 +45,7 @@ class DiceBotCog(commands.Cog):
 
     @commands.command()
     async def f(self, context, *, command):
-        print(command)
+        #print(command)
         processingFlag = False
         try:
             command_line = ""

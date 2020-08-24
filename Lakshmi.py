@@ -7,10 +7,11 @@ import traceback
 import discord
 from discord.ext import commands
 
+from MultilineBot import MultilineBot
 from LakshmiStorage import LakshmiStorage
 from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException
 
-bot = commands.Bot(command_prefix=':')
+bot = MultilineBot(command_prefix=':')
 bot.storage = LakshmiStorage()
 
 
@@ -63,6 +64,9 @@ async def on_command_error(context, error):
 
     elif isinstance(error, PermissionNotFoundException):
         await context.send(f'{context.author.mention} 貴方……権限が無いみたいよ………。')
+
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await context.send(f'{context.author.mention} ちょっと……これで………どうしろというの？')
 
     elif isinstance(error, commands.CommandNotFound):
         message = random.choice(character_command_not_found_dialogue)
