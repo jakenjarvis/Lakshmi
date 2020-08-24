@@ -34,6 +34,7 @@ class MultilineBot(commands.Bot):
         # 書き換え
         if message.content.startswith(self.command_prefix):
             # 先頭がcommand_prefixの時のみ改変処理を行う。
+            # コメントがあるのでここでは.lower()しないこと。
 
             # コマンド相当文字の全角半角変換
             message.content = self.regex_command.sub(
@@ -41,7 +42,6 @@ class MultilineBot(commands.Bot):
                 message.content)
 
             # 改行をマークしておき、一旦１行に纏めて、コマンドでsplitする。
-            # コメントがあるのでここでは.lower()しない。
             linking_command = "🎲".join(message.content.splitlines())
             split_linking_command = self.regex_command.split(linking_command)
             removal_blank_items = [item for item in split_linking_command if item != ""]
