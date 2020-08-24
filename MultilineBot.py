@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import re
+import mojimoji
+
 from discord.ext import commands
 
 class MultilineBot(commands.Bot):
@@ -9,51 +12,67 @@ class MultilineBot(commands.Bot):
         else:
             super().__init__(command_prefix, description=description, **options)
 
-        self.__store_send_data = {}
+        # self.command_prefix
+        self.zenkaku_command_prefix = mojimoji.han_to_zen(self.command_prefix)
+
+        regex_command_conditions = r"([" + self.command_prefix + self.zenkaku_command_prefix + r"]{1}[_0-9a-zA-Z＿０-９ａ-ｚＡ-Ｚ]+)"
+        self.regex_command = re.compile(regex_command_conditions)
+
+        self.original_contents = {}
 
     # override
     async def process_commands(self, message):
         if message.author.bot:
             return
 
-        # TODO:
-        ctx = await self.get_context(message)
-        await self.invoke(ctx)
+        print("---------- override process_commands() ----------")
 
-        # added event
-        await self.on_after_process_commands()
+        # Backup original content
+        self.original_contents[message.id] = message.content
+        print("-----original_contents:\n" + message.content)
 
-    # added event
-    async def on_after_process_commands(self):
-        for target_context in self.__store_send_data.keys():
-            for store in self.__store_send_data[target_context]:
-                await target_context.send(
-                    store["content"],
-                    tts=store["tts"],
-                    embed=store["embed"],
-                    file=store["file"],
-                    files=store["files"],
-                    delete_after=store["delete_after"],
-                    nonce=store["nonce"],
-                    allowed_mentions=store["allowed_mentions"]
-                )
+        # 書き換え
+        if message.content.startswith(self.command_prefix):
+            # 先頭がcommand_prefixの時のみ改変処理を行う。
 
-    # added method
-    async def send_store(self, target_context,
-                content=None, *, tts=False, embed=None, file=None,
-                files=None, delete_after=None, nonce=None,
-                allowed_mentions=None):
+            # コマンド相当文字の全角半角変換
+            message.content = self.regex_command.sub(
+                lambda match: mojimoji.zen_to_han(match.group(0)),
+                message.content)
 
-        if not target_context in self.__store_send_data.keys():
-            self.__store_send_data[target_context] = []
+            # 改行をマークしておき、一旦１行に纏めて、コマンドでsplitする。
+            # コメントがあるのでここでは.lower()しない。
+            linking_command = "🎲".join(message.content.splitlines())
+            split_linking_command = self.regex_command.split(linking_command)
+            removal_blank_items = [item for item in split_linking_command if item != ""]
+            #print(removal_blank_items)
 
-        self.__store_send_data[target_context].append({
-            "content" : content,
-            "tts" : tts,
-            "embed" : embed,
-            "file" : file,
-            "files" : files,
-            "delete_after" : delete_after,
-            "nonce" : nonce,
-            "allowed_mentions" : allowed_mentions
-        })
+            # コマンド種類別に内容を再分配する。
+            command_line_list = {}
+            new_line = []
+            key = ""
+            for item in removal_blank_items:
+                if self.regex_command.match(item):
+                    item = item.lower()
+                    key = item
+                if not key in command_line_list.keys():
+                    command_line_list[key] = []
+                command_line_list[key].append(item)
+            #print(command_line_list)
+
+            # コマンド種類別にmessage.contentを改変し、通常処理のように偽装する。
+            for key in command_line_list.keys():
+                # new message.content
+                print("-----key: " + key)
+                message.content = ("".join(command_line_list[key])).replace('🎲', '\n')
+                print("-----New message.content:\n" + message.content)
+
+                # NOTE: この時、message.deleteを使い、
+                # コマンドを打ったユーザーのメッセージを削除するような処理を行うと、
+                # 一つのメッセージに対し、２回の削除が走ってしまう可能性があるため注意。
+                ctx = await self.get_context(message)
+                await self.invoke(ctx)
+        else:
+            # 通常時は本来通り動作させる。
+            ctx = await self.get_context(message)
+            await self.invoke(ctx)
