@@ -7,10 +7,11 @@ import traceback
 import discord
 from discord.ext import commands
 
+from MultilineBot import MultilineBot
 from LakshmiStorage import LakshmiStorage
 from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException
 
-bot = commands.Bot(command_prefix=':')
+bot = MultilineBot(command_prefix=':')
 bot.storage = LakshmiStorage()
 
 
