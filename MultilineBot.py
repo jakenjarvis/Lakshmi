@@ -76,3 +76,14 @@ class MultilineBot(commands.Bot):
             # 通常時は本来通り動作させる。
             ctx = await self.get_context(message)
             await self.invoke(ctx)
+
+    def normalize_commands(self, command):
+        # コメントがあるのでここでは.lower()しないこと。
+        result = ""
+        linking_command = "🎲".join(command.splitlines())
+        convert_zenkaku = self.regex_command.sub("🎲", linking_command).replace('　',' ')
+        split_command = re.split('🎲', convert_zenkaku, flags=re.IGNORECASE)
+        removal_blank_line = [row.strip() for row in split_command if row.strip() != ""]
+        result = "\n".join(removal_blank_line)
+        print("-----normalize_commands:\n" + result)
+        return result
