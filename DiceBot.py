@@ -26,10 +26,38 @@ def replace_dice_string(match):
 def replace_display_string(calculation):
     return calculation.replace('+','＋').replace('-','－').replace('*','×').replace('/','÷')
 
+class LineCommentSeparator():
+    VALID_COMMENT = re.compile(r"(#|＃)")
+
+    def __init__(self, one_command_line):
+        self.__command_line = ""
+        self.__comment = ""
+
+        match = DiceBot.VALID_COMMENT.search(one_command_line)
+        if match:
+            # コメント有り
+            split_command = LineCommentSeparator.VALID_COMMENT.split(one_command_line, maxsplit=1)
+            self.__command_line = split_command[0].strip()
+            self.__comment = split_command[2].strip()
+        else:
+            # コメント無し
+            self.__command_line = one_command_line.strip()
+            self.__comment = ""
+
+    @property
+    def command_line(self):
+        return self.__command_line
+
+    @property
+    def comment(self):
+        return self.__comment
+
+    def is_comment(self):
+        return len(self.__comment) >= 1
+
 class DiceBot():
     REPLACE_DICE = re.compile(r"((\d+)d(\d+))", re.IGNORECASE)
     VALID_CHARACTERS = re.compile(r"^([-+*/a-zA-Z0-9\.)(<>= ])+$", re.IGNORECASE)
-    VALID_COMMENT = re.compile(r"(#|＃)")
     VALID_COMPARISON = re.compile(r"([><=]+)", re.IGNORECASE)
     VALID_PROCESS_CRITICAL = re.compile(r"^1d100([=><]+[-+*/0-9\.]+)?$", re.IGNORECASE)
 
@@ -63,21 +91,16 @@ class DiceBot():
         for oneCommand in commandlist:
             # コメント判定
             commandComment = ""
-            match = DiceBot.VALID_COMMENT.search(oneCommand)
-            if match:
+            lc_separator = LineCommentSeparator(oneCommand)
+            if lc_separator.is_comment():
                 # コメント有り
-                split_command = DiceBot.VALID_COMMENT.split(oneCommand, maxsplit=1)
-                command_line = split_command[0].strip()
-                comment = split_command[2].strip()
-                commandComment = f' #{comment}'
+                commandComment = f' #{lc_separator.comment}'
             else:
                 # コメント無し
-                command_line = oneCommand.strip()
-                comment = ""
                 commandComment = ""
 
             # コマンドの整理
-            fixedOneCommand = mojimoji.zen_to_han(command_line).replace(' ','')
+            fixedOneCommand = mojimoji.zen_to_han(lc_separator.command_line).replace(' ','')
             # 安全性のチェック
             check = DiceBot.VALID_CHARACTERS.search(fixedOneCommand)
             if check:
@@ -99,6 +122,16 @@ class DiceBot():
         #  (9-10)×5=-5、50+(-5)=45% ⇒ 1d100<=45 #対抗の成功判定
         commandlist = command.splitlines()
         for oneCommand in commandlist:
+            # コメント判定
+            commandComment = ""
+            lc_separator = LineCommentSeparator(oneCommand)
+            if lc_separator.is_comment():
+                # コメント有り
+                commandComment = f' #対抗: {lc_separator.comment}'
+            else:
+                # コメント無し
+                commandComment = " #対抗ロール"
+
             # コマンドの整理
             fixedOneCommand = mojimoji.zen_to_han(oneCommand)
             # 安全性のチェック
@@ -115,11 +148,9 @@ class DiceBot():
                 passive_side = int(removal_blank[1])
                 percent = 50 + ((active_side - passive_side) * 5)
 
-                self.roll(f'1d100<={str(percent)} #対抗ロール')
+                self.roll(f'1d100<={str(percent)}{commandComment}')
 
     def roll(self, command):
-        command_line = ""
-        comment = ""
         dice_command = ""
         conditional_expression = ""
         comparison_value = ""
@@ -127,19 +158,9 @@ class DiceBot():
         commandlist = command.splitlines()
         for oneCommand in commandlist:
             # コメント判定
-            match = DiceBot.VALID_COMMENT.search(oneCommand)
-            if match:
-                # コメント有り
-                split_command = DiceBot.VALID_COMMENT.split(oneCommand, maxsplit=1)
-                command_line = split_command[0].strip()
-                comment = split_command[2].strip()
-            else:
-                # コメント無し
-                command_line = oneCommand.strip()
-                comment = ""
-
+            lc_separator = LineCommentSeparator(oneCommand)
             # コマンドの整理
-            fixedOneCommand = mojimoji.zen_to_han(command_line).replace(' ','')
+            fixedOneCommand = mojimoji.zen_to_han(lc_separator.command_line).replace(' ','')
             # 安全性のチェック
             check = DiceBot.VALID_CHARACTERS.search(fixedOneCommand)
             if check:
@@ -185,7 +206,7 @@ class DiceBot():
                         critical_result = "【  Fumble!  】"
                         self.__fumble = True
 
-                self.__reply_message.append(f'⇒ {displayOneCommand} {comment}： {displayCalculation} = {str(total)}{judgment_result}{critical_result}')
+                self.__reply_message.append(f'⇒ {displayOneCommand} {lc_separator.comment}： {displayCalculation} = {str(total)}{judgment_result}{critical_result}')
                 self.__processing_flag = True
 
     def __execute_eval(self, formula):
