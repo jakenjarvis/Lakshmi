@@ -25,8 +25,9 @@ class GreetingCog(commands.Cog):
                 await message.channel.send(f'{message.author.mention} {character_message}')
 
             # 挨拶メッセージを見つけた
-            if self.bot.storage.is_say_hello(message.content):
-                character_message = self.bot.storage.get_character_message_for_greeting_text(message.author.display_name)
+            if self.bot.storage.is_say_hello(message):
+                character_message = self.bot.storage.get_character_message_for_greeting_text(message)
+                await message.channel.send(f'{character_message}')
 
 def setup(bot):
     bot.add_cog(GreetingCog(bot))

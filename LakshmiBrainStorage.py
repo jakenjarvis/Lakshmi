@@ -3,6 +3,7 @@
 import re
 import random
 import math
+import datetime
 
 # NOTE: キャラ設定：セリフ少な目で、おとなしい感じの、点々多めで、言い切りタイプ。
 #       柔らかいイメージ。林檎好き。
@@ -16,7 +17,14 @@ import math
 #　…ひぃ　怖いものを見て驚きながらも気付いた様子
 # --------------------------------------------------------------------------------
 class LakshmiBrainStorage():
+    MATCH_OHAYO = re.compile(r"(おはよう|おっはよ(ー|～)?|おっは(ー|～)?|おはよ(ー|～)?|おは(ー|～)?|^おは$)", re.IGNORECASE)
+    MATCH_OYASUMI = re.compile(r"(おやすみなさい|おやすみ(ー|～)?)", re.IGNORECASE)
+    MATCH_KONCHIWA = re.compile(r"(こんにち(わ|は)(ー|～)?|こんち(わ|は|ゃ)(ー|～)?)", re.IGNORECASE)
+    MATCH_KONBANWA = re.compile(r"(こんばん(わ|は)(ー|～)?|ばん(わ|は)(ー|～)?|^こん$)", re.IGNORECASE)
+
     def __init__(self):
+        self.last_say_hello = {}
+
         self.character_command_not_found_dialogue = [
             "…ん。入力ミスを感知。私、アップルパイを焼いてるところだから、あなたが直しておいてね。",
             "…むぅ。入力ミスを感知。でも…私、もう限界…。あとはあなたに任せた…。( ˘ω˘)ｽﾔｧ……あっ、いけない…寝てた…。",
@@ -36,14 +44,60 @@ class LakshmiBrainStorage():
     # Greeting Messages
     # --------------------------------------------------------------------------------
 
-    def is_say_hello(self, evaluation_text):
-        # TODO:
-        return False
+    def is_say_hello(self, message):
+        result = False
+        if LakshmiBrainStorage.MATCH_KONCHIWA.search(message.content):
+            # こんにちは
+            result = True
+        elif LakshmiBrainStorage.MATCH_KONBANWA.search(message.content):
+            # こんばんは
+            result = True
+        elif LakshmiBrainStorage.MATCH_OHAYO.search(message.content):
+            # おはよう
+            result = True
+        elif LakshmiBrainStorage.MATCH_OYASUMI.search(message.content):
+            # おやすみ
+            result = True
 
-    def get_character_message_for_greeting_text(self, target_user_name):
-        # TODO:
-        pass
+        # 最近発言したばかりの場合は、発言を控える。
+        if message.author.id in self.last_say_hello.keys():
+            yuuyo = self.last_say_hello[message.author.id] + datetime.timedelta(minutes=10)
+            if datetime.datetime.now() <= yuuyo:
+                result = False
+        return result
 
+    def get_character_message_for_greeting_text(self, message):
+        self.last_say_hello[message.author.id] = datetime.datetime.now()
+        # now.hour   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+        timetable = [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2]
+        #            0:お昼時 1:朝方 2:夜間 3:真夜中
+        target = timetable[self.last_say_hello[message.author.id].hour]
+        message_table = []
+        if LakshmiBrainStorage.MATCH_KONCHIWA.search(message.content):
+            # こんにちは
+            message_table.append(f'{message.author.display_name}さん。……こんにちは。') # 0:お昼時
+            message_table.append(f'おはよう……。{message.author.display_name}さん、おはやいのね。') # 1:朝方
+            message_table.append(f'こんばんは。{message.author.display_name}さん…………もう夜の時間よ？') # 2:夜間
+            message_table.append(f'…むぅ。{message.author.display_name}さん、疲れているようね……。林檎を抱いて寝なさい……。') # 3:真夜中
+        elif LakshmiBrainStorage.MATCH_KONBANWA.search(message.content):
+            # こんばんは
+            message_table.append(f'こんにちは。{message.author.display_name}さん、もうお昼よ？昼夜が逆転してるじゃない……。') # 0:お昼時
+            message_table.append(f'…むぅ。{message.author.display_name}さん、疲れているようね……。林檎を食べて元気だして……。') # 1:朝方
+            message_table.append(f'{message.author.display_name}さん。……こんばんは。') # 2:夜間
+            message_table.append(f'{message.author.display_name}さん。こんばんは……もう寝ないと朝が大変よ……。') # 3:真夜中
+        elif LakshmiBrainStorage.MATCH_OHAYO.search(message.content):
+            # おはよう
+            message_table.append(f'こんにちは、{message.author.display_name}さん。お寝坊さんね。') # 0:お昼時
+            message_table.append(f'{message.author.display_name}さん。……おはよう。朝は辛いの……。') # 1:朝方
+            message_table.append(f'こんばんは。…ねぇ。{message.author.display_name}さん、時間感覚がおかしいんじゃない？') # 2:夜間
+            message_table.append(f'…もぅ。{message.author.display_name}さん、昼夜が逆転してるわ……。体に気を付けて……。') # 3:真夜中
+        elif LakshmiBrainStorage.MATCH_OYASUMI.search(message.content):
+            # おやすみ
+            message_table.append(f'こんにちは。{message.author.display_name}さん。お昼寝するの？') # 0:お昼時
+            message_table.append(f'…もぅ。{message.author.display_name}さん、昼夜が逆転してるわ……。ゆっくり休んでね……。') # 1:朝方
+            message_table.append(f'{message.author.display_name}さん、おやすみなさい。甘い林檎の良い夢を……。') # 2:夜間
+            message_table.append(f'{message.author.display_name}さん、おやすみなさい。私ももう寝るわ……。') # 3:真夜中
+        return message_table[target]
 
     def get_character_message_when_talked_to_by_mention(self):
         # 話しかけられた時のメッセージ
