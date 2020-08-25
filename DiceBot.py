@@ -33,7 +33,7 @@ class LineCommentSeparator():
         self.__command_line = ""
         self.__comment = ""
 
-        match = DiceBot.VALID_COMMENT.search(one_command_line)
+        match = LineCommentSeparator.VALID_COMMENT.search(one_command_line)
         if match:
             # コメント有り
             split_command = LineCommentSeparator.VALID_COMMENT.split(one_command_line, maxsplit=1)
@@ -127,19 +127,22 @@ class DiceBot():
             lc_separator = LineCommentSeparator(oneCommand)
             if lc_separator.is_comment():
                 # コメント有り
-                commandComment = f' #対抗: {lc_separator.comment}'
+                if "対抗" in lc_separator.comment:
+                    commandComment = f' #{lc_separator.comment}'
+                else:
+                    commandComment = f' #対抗{lc_separator.comment}'
             else:
                 # コメント無し
                 commandComment = " #対抗ロール"
 
             # コマンドの整理
-            fixedOneCommand = mojimoji.zen_to_han(oneCommand)
+            fixedOneCommand = mojimoji.zen_to_han(lc_separator.command_line)
             # 安全性のチェック
             check = DiceBot.VALID_CHARACTERS.search(fixedOneCommand)
             if check:
                 command_line = fixedOneCommand.split(" ")
                 removal_blank = [word.strip() for word in command_line if word.strip() != ""]
-                print(removal_blank)
+                print("removal_blank: " + str(removal_blank))
 
                 if not len(removal_blank) >= 2:
                     raise commands.CommandNotFound()
