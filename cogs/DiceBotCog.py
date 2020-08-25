@@ -15,27 +15,64 @@ class DiceBotCog(commands.Cog):
         self.bot = bot
         #self.bot.storage
 
+    # TODO: 新しいCogへ移設
     @commands.command()
     async def hello(self, context):
         await context.send('やっほー')
+
+    @commands.command()
+    async def p(self, context, *, command):
+        diceBot = DiceBot()
+        try:
+            normalize_commands = self.__normalize_commands(command)
+            # メッセージの組み立て
+            diceBot.append_reply_message(f'{context.author.mention}')
+            # ダイスロール
+            diceBot.percent(normalize_commands)
+
+            # 処理後通知
+            if diceBot.processing_flag:
+                await context.send("\n".join(diceBot.reply_message))
+            else:
+                await self.bot.on_command_error(context, commands.CommandNotFound())
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @commands.command()
+    async def vs(self, context, *, command):
+        diceBot = DiceBot()
+        try:
+            normalize_commands = self.__normalize_commands(command)
+            # メッセージの組み立て
+            diceBot.append_reply_message(f'{context.author.mention}')
+            # ダイスロール
+            diceBot.versus(normalize_commands)
+
+            # 処理後通知
+            if diceBot.processing_flag:
+                await context.send("\n".join(diceBot.reply_message))
+            else:
+                await self.bot.on_command_error(context, commands.CommandNotFound())
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
 
     @commands.command()
     async def f(self, context, *, command):
         diceBot = DiceBot()
         try:
             normalize_commands = self.__normalize_commands(command)
+            # メッセージの組み立て
+            diceBot.append_reply_message(f'{context.author.mention}')
             # ダイスロール
             diceBot.roll(normalize_commands)
 
-            # メッセージの組み立て
-            reply_message = []
-            reply_message.append(f'{context.author.mention}')
-            for message in diceBot.reply_message:
-                reply_message.append(message)
-
             # 処理後通知
             if diceBot.processing_flag:
-                await context.send("\n".join(reply_message))
+                await context.send("\n".join(diceBot.reply_message))
             else:
                 await self.bot.on_command_error(context, commands.CommandNotFound())
 
@@ -48,17 +85,14 @@ class DiceBotCog(commands.Cog):
         diceBot = DiceBot()
         try:
             normalize_commands = self.__normalize_commands(command)
+            # メッセージの組み立て NOTE: DMするのでメンションは付けない
+            #diceBot.append_reply_message(f'{context.author.mention}')
             # ダイスロール
             diceBot.roll(normalize_commands)
 
-            # メッセージの組み立て
-            reply_message = []
-            for message in diceBot.reply_message:
-                reply_message.append(message)
-
             # 処理後通知
             if diceBot.processing_flag:
-                await context.author.send("\n".join(reply_message))
+                await context.author.send("\n".join(diceBot.reply_message))
             else:
                 await self.bot.on_command_error(context, commands.CommandNotFound())
 
@@ -66,6 +100,7 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
+    # TODO: MultilineBotへ移設
     def __normalize_commands(self, command):
         # コメントがあるのでここでは.lower()しないこと。
         result = ""

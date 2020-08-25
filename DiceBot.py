@@ -36,6 +36,8 @@ class DiceBot():
     def __init__(self):
         self.__processing_flag = False
         self.__reply_message = []
+        self.__critical = False
+        self.__fumble = False
 
     @property
     def processing_flag(self):
@@ -45,14 +47,82 @@ class DiceBot():
     def reply_message(self):
         return self.__reply_message
 
+    @property
+    def critical(self):
+        return self.__critical
+
+    @property
+    def fumble(self):
+        return self.__fumble
+
+    def append_reply_message(self, message):
+        self.__reply_message.append(message)
+
+    def percent(self, command):
+        commandlist = command.splitlines()
+        for oneCommand in commandlist:
+            # コメント判定
+            commandComment = ""
+            match = DiceBot.VALID_COMMENT.search(oneCommand)
+            if match:
+                # コメント有り
+                split_command = DiceBot.VALID_COMMENT.split(oneCommand, maxsplit=1)
+                command_line = split_command[0].strip()
+                comment = split_command[2].strip()
+                commandComment = f' #{comment}'
+            else:
+                # コメント無し
+                command_line = oneCommand.strip()
+                comment = ""
+                commandComment = ""
+
+            # コマンドの整理
+            fixedOneCommand = mojimoji.zen_to_han(command_line).replace(' ','')
+            # 安全性のチェック
+            check = DiceBot.VALID_CHARACTERS.search(fixedOneCommand)
+            if check:
+                command_line = fixedOneCommand.split(" ")
+                removal_blank = [word.strip() for word in command_line if word.strip() != ""]
+                print(removal_blank)
+
+                if not len(removal_blank) >= 1:
+                    raise commands.CommandNotFound()
+                percent = int(removal_blank[0])
+
+                self.roll(f'1d100<={str(percent)}{commandComment}')
+
+    def versus(self, command):
+        # :vs 能動側(する側) 受動側(される側)
+        # (能動側ー受動側)×5＝差分を行い、50＋差分＝成功値で決定。それを1d100で振って成否の判断を行う。
+        # 例)DEX対抗の場合
+        #  能動側の数値:9、受動側の数値:10
+        #  (9-10)×5=-5、50+(-5)=45% ⇒ 1d100<=45 #対抗の成功判定
+        commandlist = command.splitlines()
+        for oneCommand in commandlist:
+            # コマンドの整理
+            fixedOneCommand = mojimoji.zen_to_han(oneCommand)
+            # 安全性のチェック
+            check = DiceBot.VALID_CHARACTERS.search(fixedOneCommand)
+            if check:
+                command_line = fixedOneCommand.split(" ")
+                removal_blank = [word.strip() for word in command_line if word.strip() != ""]
+                print(removal_blank)
+
+                if not len(removal_blank) >= 2:
+                    raise commands.CommandNotFound()
+
+                active_side = int(removal_blank[0])
+                passive_side = int(removal_blank[1])
+                percent = 50 + ((active_side - passive_side) * 5)
+
+                self.roll(f'1d100<={str(percent)} #対抗ロール')
+
     def roll(self, command):
         command_line = ""
         comment = ""
         dice_command = ""
         conditional_expression = ""
         comparison_value = ""
-
-        self.__reply_message = []
 
         commandlist = command.splitlines()
         for oneCommand in commandlist:
@@ -110,8 +180,10 @@ class DiceBot():
                     # 1D100 only
                     if total <= 5:
                         critical_result = "【 Critical! 】"
+                        self.__critical = True
                     elif total >= 96:
                         critical_result = "【  Fumble!  】"
+                        self.__fumble = True
 
                 self.__reply_message.append(f'⇒ {displayOneCommand} {comment}： {displayCalculation} = {str(total)}{judgment_result}{critical_result}')
                 self.__processing_flag = True
