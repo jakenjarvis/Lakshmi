@@ -4,6 +4,7 @@ import re
 import random
 import math
 import datetime
+import pytz
 
 # NOTE: キャラ設定：セリフ少な目で、おとなしい感じの、点々多めで、言い切りタイプ。
 #       柔らかいイメージ。林檎好き。
@@ -40,6 +41,10 @@ class LakshmiBrainStorage():
             "(ﾓｸﾞﾓｸﾞ)…林檎に夢中で、処理工程を見ていなかったけど…。入力ミスをしているわね。ちゃんと確認してみて。",
         ]
 
+
+    def get_jst_datetime_now(self):
+        return datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
+
     # --------------------------------------------------------------------------------
     # Greeting Messages
     # --------------------------------------------------------------------------------
@@ -62,12 +67,12 @@ class LakshmiBrainStorage():
         # 最近発言したばかりの場合は、発言を控える。
         if message.author.id in self.last_say_hello.keys():
             yuuyo = self.last_say_hello[message.author.id] + datetime.timedelta(minutes=10)
-            if datetime.datetime.now() <= yuuyo:
+            if self.get_jst_datetime_now() <= yuuyo:
                 result = False
         return result
 
     def get_character_message_for_greeting_text(self, message):
-        self.last_say_hello[message.author.id] = datetime.datetime.now()
+        self.last_say_hello[message.author.id] = self.get_jst_datetime_now()
         # now.hour   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
         timetable = [3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2]
         #            0:お昼時 1:朝方 2:夜間 3:真夜中
@@ -89,7 +94,7 @@ class LakshmiBrainStorage():
             # おはよう
             message_table.append(f'こんにちは、{message.author.display_name}さん。お寝坊さんね。') # 0:お昼時
             message_table.append(f'{message.author.display_name}さん。……おはよう。朝は辛いの……。') # 1:朝方
-            message_table.append(f'こんばんは。…ねぇ。{message.author.display_name}さん、時間感覚がおかしいんじゃない？') # 2:夜間
+            message_table.append(f'こんばんは。…ねぇ。{message.author.display_name}さん、時間感覚が狂ってるわよ？心配になるわ……。') # 2:夜間
             message_table.append(f'…もぅ。{message.author.display_name}さん、昼夜が逆転してるわ……。体に気を付けて……。') # 3:真夜中
         elif LakshmiBrainStorage.MATCH_OYASUMI.search(message.content):
             # おやすみ
