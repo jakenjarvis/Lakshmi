@@ -94,7 +94,7 @@ class LakshmiBrainStorage():
             # おはよう
             message_table.append(f'こんにちは、{message.author.display_name}さん。お寝坊さんね。') # 0:お昼時
             message_table.append(f'{message.author.display_name}さん。……おはよう。朝は辛いの……。') # 1:朝方
-            message_table.append(f'こんばんは。…ねぇ。{message.author.display_name}さん、時間感覚がおかしいんじゃない？') # 2:夜間
+            message_table.append(f'こんばんは。…ねぇ。{message.author.display_name}さん、時間感覚が狂ってるわよ？心配になるわ……。') # 2:夜間
             message_table.append(f'…もぅ。{message.author.display_name}さん、昼夜が逆転してるわ……。体に気を付けて……。') # 3:真夜中
         elif LakshmiBrainStorage.MATCH_OYASUMI.search(message.content):
             # おやすみ
