@@ -15,7 +15,8 @@ bot.storage = LakshmiBrainStorage()
 
 extensions = [
     'cogs.DiceBotCog',
-    'cogs.GreetingCog'
+    'cogs.GreetingCog',
+    'cogs.HighAndLowCog'
 ]
 for extension in extensions:
     bot.load_extension(extension)
