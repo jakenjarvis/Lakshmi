@@ -5,12 +5,25 @@ import re
 import math
 import random
 
+import nagisa
+
+import discord
 from discord.ext import commands
 
 class GreetingCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         #self.bot.storage
+
+    @commands.command()
+    async def nagisa(self, context, message):
+        result = "お望みの **形態素解析結果** よ。\n"
+        words = nagisa.tagging(message)
+        for index in range(len(words.words)):
+            word = words.words[index]
+            postag = words.postags[index]
+            result += " " + word + "`[" + postag + "]`"
+        await context.send(result)
 
     @commands.command()
     async def hello(self, context):
