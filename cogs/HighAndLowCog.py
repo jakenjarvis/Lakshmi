@@ -16,8 +16,9 @@ class HighAndLowCog(commands.Cog):
         self.bot = bot
         #self.bot.storage
 
-    @commands.command(description="Lakshmiと、High and Lowゲームを開始します。")
+    @commands.command()
     async def highlow(self, context):
+        """Lakshmiと、High and Lowゲームを開始します。"""
         card1 = Card.choice()
         card2 = Card.choice()
 

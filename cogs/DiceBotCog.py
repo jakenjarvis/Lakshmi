@@ -15,8 +15,9 @@ class DiceBotCog(commands.Cog):
         self.bot = bot
         #self.bot.storage
 
-    @commands.command(description="(P)percent: 1d100固定のパーセント指定でダイスを振ります。")
+    @commands.command()
     async def p(self, context, *, command):
+        """1d100固定のパーセント指定でダイスを振ります。(percent)"""
         diceBot = DiceBot()
         try:
             normalize_commands = self.bot.normalize_commands(command)
@@ -35,8 +36,9 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @commands.command(description="(VS)versus: 対抗ロールでダイスを振ります。")
+    @commands.command()
     async def vs(self, context, *, command):
+        """対抗ロールでダイスを振ります。(versus)"""
         diceBot = DiceBot()
         try:
             normalize_commands = self.bot.normalize_commands(command)
@@ -55,8 +57,9 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @commands.command(description="(F)fate: mDn形式で面を指定してダイスを振ります。")
+    @commands.command()
     async def f(self, context, *, command):
+        """mDn形式で面を指定してダイスを振ります。(fate)"""
         diceBot = DiceBot()
         try:
             normalize_commands = self.bot.normalize_commands(command)
@@ -75,8 +78,9 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @commands.command(description="(SF)secret fate: mDn形式で面を指定してダイスを振り、DMで結果を返します。")
+    @commands.command()
     async def sf(self, context, *, command):
+        """mDn形式で面を指定してダイスを振り、DMで結果を返します。(secret fate)"""
         diceBot = DiceBot()
         try:
             normalize_commands = self.bot.normalize_commands(command)
