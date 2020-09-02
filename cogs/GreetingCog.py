@@ -15,7 +15,7 @@ class GreetingCog(commands.Cog):
         self.bot = bot
         #self.bot.storage
 
-    @commands.command()
+    @commands.command(description="指定した文章を形態素解析します。")
     async def nagisa(self, context, *, message):
         result = "お望みの **形態素解析結果** よ。\n"
         words = nagisa.tagging(message)
@@ -25,7 +25,7 @@ class GreetingCog(commands.Cog):
             result += " " + word + "`[" + postag + "]`"
         await context.send(result)
 
-    @commands.command()
+    @commands.command(description="簡単な応答を返します。(Lakshmiの生存確認)")
     async def hello(self, context):
         await context.send('やっほー')
 

@@ -15,7 +15,7 @@ class DiceBotCog(commands.Cog):
         self.bot = bot
         #self.bot.storage
 
-    @commands.command()
+    @commands.command(description="(P)percent: 1d100固定のパーセント指定でダイスを振ります。")
     async def p(self, context, *, command):
         diceBot = DiceBot()
         try:
@@ -35,7 +35,7 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @commands.command()
+    @commands.command(description="(VS)versus: 対抗ロールでダイスを振ります。")
     async def vs(self, context, *, command):
         diceBot = DiceBot()
         try:
@@ -55,7 +55,7 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @commands.command()
+    @commands.command(description="(F)fate: mDn形式で面を指定してダイスを振ります。")
     async def f(self, context, *, command):
         diceBot = DiceBot()
         try:
@@ -75,7 +75,7 @@ class DiceBotCog(commands.Cog):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @commands.command()
+    @commands.command(description="(SF)secret fate: mDn形式で面を指定してダイスを振り、DMで結果を返します。")
     async def sf(self, context, *, command):
         diceBot = DiceBot()
         try:
