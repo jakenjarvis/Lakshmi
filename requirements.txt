@@ -1,6 +1,5 @@
 discord.py[voice]>=1.4.1
 mojimoji
 pytz
-Cython
 -e git+https://github.com/clab/dynet#egg=dynet
 nagisa
