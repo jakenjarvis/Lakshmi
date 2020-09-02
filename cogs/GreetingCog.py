@@ -10,7 +10,7 @@ import nagisa
 import discord
 from discord.ext import commands
 
-class GreetingCog(commands.Cog):
+class GreetingCog(commands.Cog, name='挨拶系'):
     def __init__(self, bot):
         self.bot = bot
         #self.bot.storage

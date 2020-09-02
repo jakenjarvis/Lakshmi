@@ -11,14 +11,14 @@ from discord.ext import commands
 
 # https://qiita.com/Shirataki2/items/9bdc62548e7b24d3c803
 
-class HighAndLowCog(commands.Cog):
+class HighAndLowCog(commands.Cog, name='ゲーム系'):
     def __init__(self, bot):
         self.bot = bot
         #self.bot.storage
 
     @commands.command()
     async def highlow(self, context):
-        """Lakshmiと、High and Lowゲームを開始します。"""
+        """ゲーム「High and Low」でLakshmiと遊びます。"""
         card1 = Card.choice()
         card2 = Card.choice()
 

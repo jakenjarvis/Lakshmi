@@ -10,7 +10,7 @@ from discord.ext import commands
 
 from DiceBot import DiceBot
 
-class DiceBotCog(commands.Cog):
+class DiceBotCog(commands.Cog, name='ダイス系'):
     def __init__(self, bot):
         self.bot = bot
         #self.bot.storage
@@ -80,7 +80,7 @@ class DiceBotCog(commands.Cog):
 
     @commands.command()
     async def sf(self, context, *, command):
-        """mDn形式で面を指定してダイスを振り、DMで結果を返します。(secret fate)"""
+        """fと同じ。結果をDMで通知します。(secret fate)"""
         diceBot = DiceBot()
         try:
             normalize_commands = self.bot.normalize_commands(command)

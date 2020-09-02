@@ -7,10 +7,11 @@ import discord
 from discord.ext import commands
 
 from MultilineBot import MultilineBot
+from LakshmiHelpCommand import LakshmiHelpCommand
 from LakshmiBrainStorage import LakshmiBrainStorage
 from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException
 
-bot = MultilineBot(command_prefix=':')
+bot = MultilineBot(command_prefix=':', help_command=LakshmiHelpCommand())
 bot.storage = LakshmiBrainStorage()
 
 extensions = [
