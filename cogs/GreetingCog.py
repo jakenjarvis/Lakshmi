@@ -16,7 +16,7 @@ class GreetingCog(commands.Cog):
         #self.bot.storage
 
     @commands.command()
-    async def nagisa(self, context, message):
+    async def nagisa(self, context, *, message):
         result = "お望みの **形態素解析結果** よ。\n"
         words = nagisa.tagging(message)
         for index in range(len(words.words)):
