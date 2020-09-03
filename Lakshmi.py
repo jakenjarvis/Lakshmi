@@ -24,6 +24,11 @@ for extension in extensions:
     bot.load_extension(extension)
 
 @bot.event
+async def on_ready():
+    print("Lakshmi.on_ready()")
+    print(discord.__version__)
+
+@bot.event
 async def on_command_error(context: commands.Context, error):
     if isinstance(error, ArgumentOutOfRangeException):
         character_message = bot.storage.get_character_message_for_argument_out_of_range_exception()

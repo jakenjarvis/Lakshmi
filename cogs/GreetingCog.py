@@ -4,6 +4,9 @@ import os
 import re
 import math
 import random
+import datetime
+
+from typing import Union
 
 import nagisa
 
@@ -59,6 +62,15 @@ class GreetingCog(commands.Cog, name='挨拶系'):
             if self.bot.storage.is_say_hello(message):
                 character_message = self.bot.storage.get_character_message_for_greeting_text(message)
                 await message.channel.send(f'{character_message}')
+
+    @commands.Cog.listener()
+    async def on_typing(self, channel: discord.abc.Messageable, user: Union[discord.User, discord.Member], when: datetime.datetime):
+        # 誰かがメッセージを入力し始めたときに呼び出されます。
+        # https://discordpy.readthedocs.io/ja/latest/api.html#discord.on_typing
+        # channel == discord.TextChannel  : user == discord.Member
+        # channel == discord.GroupChannel : user == discord.User
+        # channel == discord.DMChannel    : user == discord.User
+        pass
 
 def setup(bot):
     bot.add_cog(GreetingCog(bot))
