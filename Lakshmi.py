@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from MultilineBot import MultilineBot
 from LakshmiHelpCommand import LakshmiHelpCommand
-from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException, SubcommandNotFoundException
+from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException, SubcommandNotFoundException, CharacterNotFoundException
 
 from contents.LakshmiBrainStorage import LakshmiBrainStorage
 
@@ -18,7 +18,8 @@ bot.storage = LakshmiBrainStorage()
 extensions = [
     'cogs.DiceBotCog',
     'cogs.GamesCog',
-    'cogs.GreetingCog'
+    'cogs.GreetingCog',
+    'cogs.CallOfCthulhuCog'
 ]
 for extension in extensions:
     bot.load_extension(extension)
@@ -44,6 +45,10 @@ async def on_command_error(context: commands.Context, error):
 
     elif isinstance(error, SubcommandNotFoundException):
         character_message = bot.storage.get_character_message_for_command_not_found()
+        await context.send(f'{context.author.mention} {character_message}')
+
+    elif isinstance(error, CharacterNotFoundException):
+        character_message = bot.storage.get_character_message_for_character_not_found()
         await context.send(f'{context.author.mention} {character_message}')
 
     elif isinstance(error, commands.CommandNotFound):

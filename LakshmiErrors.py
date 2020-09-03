@@ -10,3 +10,6 @@ class ArgumentOutOfRangeException(CommandError):
 
 class SubcommandNotFoundException(CommandError):
     pass
+
+class CharacterNotFoundException(CommandError):
+    pass

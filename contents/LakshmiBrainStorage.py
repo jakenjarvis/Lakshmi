@@ -160,3 +160,7 @@ class LakshmiBrainStorage():
     def get_character_message_to_ask_the_developer_for_help(self):
         # 原因不明のエラーで開発者に助けを求めるときのエラーメッセージ
         return "私の中で……何かが起こったようなの………。これを……開発者さんに知らせてあげて！"
+
+    def get_character_message_for_character_not_found(self):
+        # 存在しないキャラクターが指定されたときのエラーメッセージ
+        return "ねぇ……。そのキャラクター……見つからないわ………何か間違ってない？"

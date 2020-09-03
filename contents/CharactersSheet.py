@@ -16,6 +16,7 @@ class CharactersSheet(PandasGoogleSpreadsheetWrapper):
             "Key": "uniqueKey",
             "Active": "active",
             "名前": "name",
+            "SiteUrl": "siteUrl",
         }
         self.reverseColumnNames = {v: k for k, v in self.nomalColumnNames.items()}
 
