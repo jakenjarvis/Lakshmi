@@ -17,17 +17,14 @@ bot.storage = LakshmiBrainStorage()
 
 extensions = [
     'cogs.DiceBotCog',
-    'cogs.GreetingCog',
-    'cogs.HighAndLowCog'
+    'cogs.GamesCog',
+    'cogs.GreetingCog'
 ]
 for extension in extensions:
     bot.load_extension(extension)
 
 @bot.event
-async def on_command_error(context, error):
-    # Throwしたいときは、以下のようにon_command_errorを呼び出す。
-    # await self.bot.on_command_error(context, PermissionNotFound())
-
+async def on_command_error(context: commands.Context, error):
     if isinstance(error, ArgumentOutOfRangeException):
         character_message = bot.storage.get_character_message_for_argument_out_of_range_exception()
         await context.send(f'{context.author.mention} {character_message}')

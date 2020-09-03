@@ -12,15 +12,20 @@ class GamesCog(commands.Cog, name='ゲーム系'):
         #self.bot.storage
 
     @commands.group()
-    async def game(self, context):
+    async def game(self, context: commands.Context):
         if context.invoked_subcommand is None:
             raise SubcommandNotFoundException()
 
     @game.command(aliases=['highandlow','highlow','hl'])
-    async def highandlow(self, context):
+    async def highandlow(self, context: commands.Context):
         """ゲーム「High and Low」でLakshmiと遊びます。"""
-        game = GameHighAndLow(self.bot)
-        game.high_and_low(context)
+        try:
+            game = GameHighAndLow(self.bot)
+            game.high_and_low(context)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
 
 def setup(bot):
     bot.add_cog(GamesCog(bot))

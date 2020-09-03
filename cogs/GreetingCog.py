@@ -16,29 +16,39 @@ class GreetingCog(commands.Cog, name='挨拶系'):
         #self.bot.storage
 
     @commands.command()
-    async def nagisa(self, context, *, message):
+    async def nagisa(self, context: commands.Context, *, message: str):
         """指定した文章を形態素解析します。"""
-        character_message = self.bot.storage.get_character_message_for_command_nagisa()
-        result = f"{character_message}\n"
+        try:
+            character_message = self.bot.storage.get_character_message_for_command_nagisa()
+            result = f"{character_message}\n"
 
-        await self.bot.send_typing(context.channel)
+            await self.bot.send_typing(context.channel)
 
-        words = nagisa.tagging(message)
-        for index in range(len(words.words)):
-            word = words.words[index]
-            postag = words.postags[index]
-            result += " " + word + "`[" + postag + "]`"
+            words = nagisa.tagging(message)
+            for index in range(len(words.words)):
+                word = words.words[index]
+                postag = words.postags[index]
+                result += " " + word + "`[" + postag + "]`"
 
-        await context.send(result)
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
 
     @commands.command()
-    async def hello(self, context):
+    async def hello(self, context: commands.Context):
         """簡単な応答を返します。(Lakshmiの生存確認用)"""
-        character_message = self.bot.storage.get_character_message_for_command_hello()
-        await context.send(character_message)
+        try:
+            character_message = self.bot.storage.get_character_message_for_command_hello()
+            await context.send(character_message)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         if message.author != self.bot.user:
             # メンションで話しかけられた
             if self.bot.user in message.mentions:
