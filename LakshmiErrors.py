@@ -7,3 +7,6 @@ class PermissionNotFoundException(Exception):
 
 class ArgumentOutOfRangeException(CommandError):
     pass
+
+class SubcommandNotFoundException(CommandError):
+    pass

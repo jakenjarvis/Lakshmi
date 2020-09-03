@@ -18,18 +18,24 @@ class GreetingCog(commands.Cog, name='挨拶系'):
     @commands.command()
     async def nagisa(self, context, *, message):
         """指定した文章を形態素解析します。"""
-        result = "お望みの **形態素解析結果** よ。\n"
+        character_message = self.bot.storage.get_character_message_for_command_nagisa()
+        result = f"{character_message}\n"
+
+        await self.bot.send_typing(context.channel)
+
         words = nagisa.tagging(message)
         for index in range(len(words.words)):
             word = words.words[index]
             postag = words.postags[index]
             result += " " + word + "`[" + postag + "]`"
+
         await context.send(result)
 
     @commands.command()
     async def hello(self, context):
         """簡単な応答を返します。(Lakshmiの生存確認用)"""
-        await context.send('やっほー')
+        character_message = self.bot.storage.get_character_message_for_command_hello()
+        await context.send(character_message)
 
     @commands.Cog.listener()
     async def on_message(self, message):

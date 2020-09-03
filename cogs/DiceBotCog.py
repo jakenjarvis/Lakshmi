@@ -8,7 +8,7 @@ import random
 import mojimoji
 from discord.ext import commands
 
-from DiceBot import DiceBot
+from contents.DiceBot import DiceBot
 
 class DiceBotCog(commands.Cog, name='ダイス系'):
     def __init__(self, bot):

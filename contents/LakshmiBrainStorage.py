@@ -48,6 +48,11 @@ class LakshmiBrainStorage():
     # --------------------------------------------------------------------------------
     # Greeting Messages
     # --------------------------------------------------------------------------------
+    def get_character_message_for_command_nagisa(self):
+        return "…ん。お望みの **形態素解析結果** よ……。"
+
+    def get_character_message_for_command_hello(self):
+        return "はぁい…………。ちゃんといるわよ……。"
 
     def is_say_hello(self, message):
         result = False
