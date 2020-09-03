@@ -58,13 +58,5 @@ async def on_command_error(context: commands.Context, error):
         message = f'{context.author.mention}\n{character_message}\n{error_message}'
         await context.send(message)
 
-token = ""
-try:
-    # Heroku環境
-    token = os.environ['DISCORD_TOKEN']
-except Exception as e:
-    # ローカル環境
-    with open(r"token.txt", "r", encoding="utf-8") as file:
-        token = file.read()
-
+token = bot.storage.environment.get_discord_token()
 bot.run(token)

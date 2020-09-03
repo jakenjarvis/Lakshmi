@@ -1,5 +1,12 @@
 discord.py[voice]>=1.4.1
 mojimoji
 pytz
+google-auth
+google-auth-httplib2
+google-api-python-client
+pandas
+numpy
+gspread
+gspread_pandas
 nagisa
 gensim

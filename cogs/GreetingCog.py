@@ -25,7 +25,7 @@ class GreetingCog(commands.Cog, name='挨拶系'):
             character_message = self.bot.storage.get_character_message_for_command_nagisa()
             result = f"{character_message}\n"
 
-            await self.bot.send_typing(context.channel)
+            await context.trigger_typing()
 
             words = nagisa.tagging(message)
             for index in range(len(words.words)):

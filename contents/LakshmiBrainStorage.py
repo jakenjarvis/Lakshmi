@@ -6,6 +6,9 @@ import math
 import datetime
 import pytz
 
+from LakshmiEnvironmentVariables import LakshmiEnvironmentVariables
+from common.GoogleCredentialsManager import GoogleCredentialsManager
+
 # NOTE: キャラ設定：セリフ少な目で、おとなしい感じの、点々多めで、言い切りタイプ。
 #       柔らかいイメージ。林檎好き。
 #       一人称は「私」、相手の呼び方は「あなた」、語尾が「～ね」
@@ -24,6 +27,16 @@ class LakshmiBrainStorage():
     MATCH_KONBANWA = re.compile(r"(こんばん(わ|は)(ー|～)?|ばん(わ|は)(ー|～)?|^こん$)", re.IGNORECASE)
 
     def __init__(self):
+        self.__environment = LakshmiEnvironmentVariables()
+        print("start GoogleCredentialsManager")
+        self.__gcmanager = GoogleCredentialsManager(
+            self.__environment.get_google_credentials_json(),
+            self.__environment.get_google_credentials_scopes()
+            )
+        self.__gcmanager.getCredentials_FromServiceAccount()
+        print("end GoogleCredentialsManager")
+
+        # 最終挨拶発言者別日時記録
         self.last_say_hello = {}
 
         self.character_command_not_found_dialogue = [
@@ -41,6 +54,17 @@ class LakshmiBrainStorage():
             "(ﾓｸﾞﾓｸﾞ)…林檎に夢中で、処理工程を見ていなかったけど…。入力ミスをしているわね。ちゃんと確認してみて。",
         ]
 
+    @property
+    def environment(self):
+        return self.__environment
+
+    @property
+    def gcmanager(self):
+        return self.__gcmanager
+
+    # --------------------------------------------------------------------------------
+    # Common
+    # --------------------------------------------------------------------------------
 
     def get_jst_datetime_now(self):
         return datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
