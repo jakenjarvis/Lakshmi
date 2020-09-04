@@ -38,6 +38,13 @@ class AbilitySet:
     temp: int = 0               # 一時的増減
     current: int = 0            # 現在値
 
+    def set_values(self, base, other, temp, current):
+        self.base = base
+        self.other = other
+        self.temp = temp
+        self.current = current
+        return self
+
 # 技能セット
 @dataclass
 class SkillSet():
@@ -53,6 +60,16 @@ class SkillSet():
     growth: int = 0             # 成長分
     other: int = 0              # その他増加分
     current: int = 0            # 現在値
+
+    def set_values(self, growth_check, base, occupation, interest, growth, other, current):
+        self.growth_check = bool(growth_check)
+        self.base = base
+        self.occupation = occupation
+        self.interest = interest
+        self.growth = growth
+        self.other = other
+        self.current = current
+        return self
 
 # 特徴
 @dataclass
