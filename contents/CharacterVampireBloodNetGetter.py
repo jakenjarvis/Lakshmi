@@ -54,7 +54,7 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
             result.personal_data.eye_color = data["color_eye"]      # 瞳の色
             result.personal_data.skin_color = data["color_skin"]    # 肌の色
 
-            result.personal_data.memo = data["pc_making_memo"]      # その他メモ
+            result.personal_data.backstory = data["pc_making_memo"] # その他メモ
 
             # 能力値
             result.characteristics.strength.set_values(data["NA1"], data["NS1"], data["NM1"], data["NP1"])
