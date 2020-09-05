@@ -14,5 +14,8 @@ class SubcommandNotFoundException(CommandError):
 class UnsupportedSitesException(CommandError):
     pass
 
+class NotCallOfCthulhuInvestigatorException(CommandError):
+    pass
+
 class CharacterNotFoundException(CommandError):
     pass

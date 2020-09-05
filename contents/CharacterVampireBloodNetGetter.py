@@ -7,6 +7,8 @@ import re
 from contents.AbstractCharacterGetter import AbstractCharacterGetter
 from contents.Investigator import Investigator, SkillSet
 
+from LakshmiErrors import NotCallOfCthulhuInvestigatorException
+
 class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
     DETECT_TARGET_URL = re.compile(r"^.*charasheet\.vampire\-blood\.net.*$", re.IGNORECASE)
     SKILL_TITLE_SPLIT = re.compile(r"^([^（【〔［《『「(\[）】〕］》』」)\]]+)([（【〔［《『「(\[]+)([^）】〕］》』」)\]]+)([）】〕］》』」)\]])?$", re.IGNORECASE)
@@ -14,9 +16,19 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
     def __init__(self):
         pass
 
-    def detect_url(self, site_url: str) -> bool:
+    @classmethod
+    def get_site_title(self) -> str:
+        return "キャラクター保管所 (charasheet.vampire-blood.net)"
+
+    @classmethod
+    def is_detect_url(self, site_url: str) -> bool:
         return (CharacterVampireBloodNetGetter.DETECT_TARGET_URL.search(site_url) != None)
 
+    @classmethod
+    def get_favicon_url(self) -> str:
+        return "https://www.google.com/s2/favicons?domain=charasheet.vampire-blood.net"
+
+    @classmethod
     def request(self, site_url: str) -> Investigator:
         result = None
         # https://charasheet.vampire-blood.net/help/webif
@@ -30,19 +42,21 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
         except Exception as e:
             response = None
 
-        # COCのデータでなければ破棄する。
+        # COCのデータでなければ拒否する。
         if data["game"] != "coc":
-            response = None
+            raise NotCallOfCthulhuInvestigatorException()
 
         if response:
             result = Investigator()
 
-            result.unique_key = ""                  # Key
-            result.site_url = site_url              # SiteUrl
-            result.author_id = ""                   # 所有者ID
-            result.author_name = ""                 # 所有者名
-            result.active = False                   # Active
-            result.tag = data["pc_tags"]            # タグ
+            result.unique_key = ""                              # Key
+            result.site_url = site_url                          # SiteUrl
+            result.site_name = self.get_site_title()            # SiteName
+            result.site_favicon_url = self.get_favicon_url()    # SiteFaviconUrl
+            result.author_id = ""                               # 所有者ID
+            result.author_name = ""                             # 所有者名
+            result.active = False                               # Active
+            result.tag = data["pc_tags"]                        # タグ
 
             # パーソナルデータ
             result.personal_data.name = data["pc_name"]             # 名前
@@ -124,6 +138,7 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
 
         return result
 
+    @classmethod
     def set_skills_values(self, skills, defaultkeys, data, growth_checke_key, base_key, occupation_key, interest_key, growth_key, other_key, current_key, additions_name_key):
         # 配列数の取得
         skills_count = len(data[growth_checke_key])

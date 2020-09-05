@@ -7,7 +7,17 @@ from contents.Investigator import Investigator
 class AbstractCharacterGetter(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
-    def detect_url(self, site_url: str) -> bool:
+    def get_site_title(self) -> str:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def is_detect_url(self, site_url: str) -> bool:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def get_favicon_url(self) -> str:
         pass
 
     @classmethod

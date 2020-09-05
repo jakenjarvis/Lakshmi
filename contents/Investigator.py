@@ -38,12 +38,18 @@ class AbilitySet:
     temp: int = 0               # 一時的増減
     current: int = 0            # 現在値
 
+    def __hash__(self):
+        return hash(self.ability_name)
+
     def set_values(self, base, other, temp, current):
         self.base = base
         self.other = other
         self.temp = temp
         self.current = current
         return self
+
+    def to_display_string(self):
+        return f"{self.ability_name}: {self.current}"
 
 # 技能セット
 @dataclass
@@ -61,6 +67,9 @@ class SkillSet():
     other: int = 0              # その他増加分
     current: int = 0            # 現在値
 
+    def __hash__(self):
+        return hash(f"{self.skill_type}-{self.skill_name}-{self.skill_subname}")
+
     def set_values(self, growth_check, base, occupation, interest, growth, other, current):
         self.growth_check = bool(growth_check)
         self.base = base
@@ -70,6 +79,14 @@ class SkillSet():
         self.other = other
         self.current = current
         return self
+
+    def to_display_string(self):
+        result = ""
+        if len(self.skill_subname.strip()) >= 1:
+            result = f"{self.skill_name}({self.skill_subname}): {self.current}"
+        else:
+            result = f"{self.skill_name}: {self.current}"
+        return result
 
 # 特徴
 @dataclass
@@ -89,6 +106,27 @@ class Characteristics():
     luck: AbilitySet = AbilitySet("幸運")
     knowledge: AbilitySet = AbilitySet("知識")
 
+    def __post_init__(self):
+        self.__category1 = [
+            self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education
+            ]
+        self.__category2 = [
+            self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
+            ]
+        self.__category_all = [
+            self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education,
+            self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
+            ]
+
+    def category1_keys(self):
+        return self.__category1
+
+    def category2_keys(self):
+        return self.__category2
+
+    def category_all_keys(self):
+        return self.__category_all
+
 # 技能ポイント
 @dataclass
 class SkillPoints:
@@ -104,6 +142,8 @@ class SkillPoints:
 class Investigator:
     unique_key: str = ""        # Key
     site_url: str = ""          # SiteUrl
+    site_name: str = ""         # SiteName
+    site_favicon_url: str = ""  # SiteFaviconUrl
     author_id: str = ""         # 所有者ID
     author_name: str = ""       # 所有者名
     active: bool = False        # Active

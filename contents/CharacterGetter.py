@@ -17,7 +17,7 @@ class CharacterGetter():
     def get_target_instance(self, site_url: str) -> AbstractCharacterGetter:
         result = None
         for instance in self.instances:
-            if instance.detect_url(site_url):
+            if instance.is_detect_url(site_url):
                 result = instance
                 break
         return result

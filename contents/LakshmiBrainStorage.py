@@ -165,6 +165,10 @@ class LakshmiBrainStorage():
         # 対応していないサイトのURLが指定されたときのエラーメッセージ
         return "…むぅ。私はそのサイト………知らないわ……。ごめんなさい………。"
 
+    def get_character_message_for_not_callofcthulhu_investigator(self):
+        # 対応していないサイトのURLが指定されたときのエラーメッセージ
+        return "…あ。クトゥルフの探索者じゃないキャラは扱えないわ……。ごめんなさい………。"
+
     def get_character_message_for_character_not_found(self):
         # 存在しないキャラクターが指定されたときのエラーメッセージ
         return "ねぇ……。そのキャラクター……見つからないわ………何か間違ってない？"
