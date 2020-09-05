@@ -4,10 +4,9 @@ import requests
 import json
 import re
 
-from contents.AbstractCharacterGetter import AbstractCharacterGetter
-from contents.Investigator import Investigator, SkillSet
-
 from LakshmiErrors import NotCallOfCthulhuInvestigatorException
+from contents.character.Investigator import Investigator, SkillSet
+from contents.character.AbstractCharacterGetter import AbstractCharacterGetter
 
 class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
     DETECT_TARGET_URL = re.compile(r"^.*charasheet\.vampire\-blood\.net.*$", re.IGNORECASE)

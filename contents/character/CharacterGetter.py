@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 from typing import List
 
-from contents.AbstractCharacterGetter import AbstractCharacterGetter
-from contents.Investigator import Investigator
 from LakshmiErrors import UnsupportedSitesException
-
-from contents.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
+from contents.character.Investigator import Investigator
+from contents.character.AbstractCharacterGetter import AbstractCharacterGetter
+from contents.character.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
 
 class CharacterGetter():
     def __init__(self):

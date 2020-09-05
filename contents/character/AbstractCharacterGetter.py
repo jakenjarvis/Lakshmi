@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
 
-from contents.Investigator import Investigator
+from contents.character.Investigator import Investigator
 
 class AbstractCharacterGetter(metaclass=ABCMeta):
     @classmethod

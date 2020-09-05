@@ -3,12 +3,12 @@
 from unittest import result
 import discord
 
-from contents.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
-from contents.Investigator import Investigator
+from contents.character.Investigator import Investigator
+from contents.character.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
 
 class InvestigatorEmbedCreator():
     @staticmethod
-    def create(char: Investigator) -> discord.Embed:
+    def create_full_status(char: Investigator) -> discord.Embed:
         onelinebackstory = char.backstory.splitlines()[0]
 
         result = discord.Embed(

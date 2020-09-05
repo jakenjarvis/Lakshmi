@@ -4,9 +4,8 @@ import discord
 from discord.ext import commands
 
 from LakshmiErrors import CharacterNotFoundException
-
-from contents.CharacterGetter import CharacterGetter
-from contents.InvestigatorEmbedCreator import InvestigatorEmbedCreator
+from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
+from contents.character.CharacterGetter import CharacterGetter
 
 class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     def __init__(self, bot):
@@ -26,7 +25,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 print(character.name)
                 #result = f'{context.author.mention} {character.name} {character.age} {character.sex} {character.occupation}\n{character.memo}'
                 #await context.send(result)
-                embed = InvestigatorEmbedCreator.create(character)
+                embed = InvestigatorEmbedCreator.create_full_status(character)
                 await context.send(embed=embed)
             else:
                 raise CharacterNotFoundException()
