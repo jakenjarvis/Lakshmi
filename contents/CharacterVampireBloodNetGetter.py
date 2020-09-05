@@ -8,10 +8,14 @@ from contents.AbstractCharacterGetter import AbstractCharacterGetter
 from contents.Investigator import Investigator, SkillSet
 
 class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
+    DETECT_TARGET_URL = re.compile(r"^.*charasheet\.vampire\-blood\.net.*$", re.IGNORECASE)
     SKILL_TITLE_SPLIT = re.compile(r"^([^（【〔［《『「(\[）】〕］》』」)\]]+)([（【〔［《『「(\[]+)([^）】〕］》』」)\]]+)([）】〕］》』」)\]])?$", re.IGNORECASE)
 
     def __init__(self):
         pass
+
+    def detect_url(self, site_url: str) -> bool:
+        return (CharacterVampireBloodNetGetter.DETECT_TARGET_URL.search(site_url) != None)
 
     def request(self, site_url: str) -> Investigator:
         result = None
@@ -119,14 +123,6 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
             # 所持品・所持金
 
         return result
-
-
-    def get(self, unique_key: str) -> Investigator:
-        pass
-
-    def register(self, character: Investigator):
-        pass
-
 
     def set_skills_values(self, skills, defaultkeys, data, growth_checke_key, base_key, occupation_key, interest_key, growth_key, other_key, current_key, additions_name_key):
         # 配列数の取得
