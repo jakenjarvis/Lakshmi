@@ -148,6 +148,7 @@ class Investigator:
     author_name: str = ""       # 所有者名
     active: bool = False        # Active
     tag: str = ""               # タグ
+    image_url: str = ""         # 画像URL
 
     # 特徴
     characteristics: Characteristics = Characteristics()

@@ -21,11 +21,11 @@ class CharacterGetter():
                 break
         return result
 
-    def request(self, site_url: str) -> Investigator:
+    def request(self, instance: Investigator, site_url: str) -> bool:
         target_instance = self.get_target_instance(site_url)
         if not target_instance:
             raise UnsupportedSitesException()
-        return target_instance.request(site_url)
+        return target_instance.request(instance, site_url)
 
     def get(self, unique_key: str) -> Investigator:
         pass
