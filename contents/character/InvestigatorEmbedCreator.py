@@ -45,22 +45,11 @@ class InvestigatorEmbedCreator():
         out_value = f"{char.sanity_points.current} / {char.sanity_points.max_insane}　(不定領域: {char.sanity_points.indef_insane})"
         result.add_field(name="現在SAN値", value=out_value, inline=False)
 
-        # 基礎能力、特性等
+        # 特性
         out_value = f""
-        for ability in char.characteristics.category_all_keys():
-            out_value += f"{ability.to_display_string()}　"
+        for key in char.characteristics.keys():
+            out_value += f"{char.characteristics[key].to_display_string()}　"
         result.add_field(name="特性", value=out_value, inline=False)
-
-        #out_value = f""
-        #for ability in char.characteristics.category1_keys():
-        #    out_value += f"`{ability.to_display_string()}`　"
-        #result.add_field(name="能力値", value=out_value, inline=False)
-
-        #out_value = f""
-        #out_value += f"\n"
-        #for ability in char.characteristics.category2_keys():
-        #    out_value += f"`{ability.to_display_string()}`　"
-        #result.add_field(name="特性", value=out_value, inline=False)
 
         # 戦闘技能
         out_value = f""

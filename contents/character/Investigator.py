@@ -88,45 +88,6 @@ class SkillSet():
             result = f"{self.skill_name}: {self.current}"
         return result
 
-# 特徴
-@dataclass
-class Characteristics():
-    strength: AbilitySet = field(default=AbilitySet("STR"))
-    constitution: AbilitySet = field(default=AbilitySet("CON"))
-    power: AbilitySet = field(default=AbilitySet("POW"))
-    dexterity: AbilitySet = field(default=AbilitySet("DEX"))
-    appearance: AbilitySet = field(default=AbilitySet("APP"))
-    size: AbilitySet = field(default=AbilitySet("SIZ"))
-    intelligence: AbilitySet = field(default=AbilitySet("INT"))
-    education: AbilitySet = field(default=AbilitySet("EDU"))
-    hit_points: AbilitySet = field(default=AbilitySet("HP"))
-    magic_points: AbilitySet = field(default=AbilitySet("MP"))
-    initial_sanity: AbilitySet = field(default=AbilitySet("初期SAN"))
-    idea: AbilitySet = field(default=AbilitySet("アイデア"))
-    luck: AbilitySet = field(default=AbilitySet("幸運"))
-    knowledge: AbilitySet = field(default=AbilitySet("知識"))
-
-    #__category_all: List[AbilitySet] = field(default_factory=list)
-
-    #def __post_init__(self):
-    #    self.__category1 = [
-    #        self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education
-    #        ]
-    #    self.__category2 = [
-    #        self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
-    #        ]
-    #    self.__category_all = self.__set_category_all_keys()
-
-    #@classmethod
-    #def __set_category_all_keys(self):
-    #    return [
-    #        self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education,
-    #        self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
-    #    ]
-
-    def category_all_keys(self):
-        return [getattr(self, fld.name) for fld in fields(self)]
-
 # 技能ポイント
 @dataclass
 class SkillPoints:
@@ -151,7 +112,23 @@ class Investigator:
     image_url: str = ""         # 画像URL
 
     # 特徴
-    characteristics: Characteristics = field(default_factory=Characteristics)
+    characteristics: Dict[str, AbilitySet] = field(default_factory=lambda: {
+        "strength"              : AbilitySet("STR"),
+        "constitution"          : AbilitySet("CON"),
+        "power"                 : AbilitySet("POW"),
+        "dexterity"             : AbilitySet("DEX"),
+        "appearance"            : AbilitySet("APP"),
+        "size"                  : AbilitySet("SIZ"),
+        "intelligence"          : AbilitySet("INT"),
+        "education"             : AbilitySet("EDU"),
+        "hit_points"            : AbilitySet("HP"),
+        "magic_points"          : AbilitySet("MP"),
+        "initial_sanity"        : AbilitySet("初期SAN"),
+        "idea"                  : AbilitySet("アイデア"),
+        "luck"                  : AbilitySet("幸運"),
+        "knowledge"             : AbilitySet("知識"),
+    })
+
     # SAN値
     sanity_points: SanityPoints = field(default_factory=SanityPoints)
     # 技能
@@ -268,43 +245,43 @@ class Investigator:
 
     @property
     def STR(self):
-        return self.characteristics.strength.current
+        return self.characteristics["strength"].current
     @property
     def CON(self):
-        return self.characteristics.constitution.current
+        return self.characteristics["constitution"].current
     @property
     def POW(self):
-        return self.characteristics.power.current
+        return self.characteristics["power"].current
     @property
     def DEX(self):
-        return self.characteristics.dexterity.current
+        return self.characteristics["dexterity"].current
     @property
     def APP(self):
-        return self.characteristics.appearance.current
+        return self.characteristics["appearance"].current
     @property
     def SIZ(self):
-        return self.characteristics.size.current
+        return self.characteristics["size"].current
     @property
     def INT(self):
-        return self.characteristics.intelligence.current
+        return self.characteristics["intelligence"].current
     @property
     def EDU(self):
-        return self.characteristics.education.current
+        return self.characteristics["education"].current
     @property
     def HP(self):
-        return self.characteristics.hit_points.current
+        return self.characteristics["hit_points"].current
     @property
     def MP(self):
-        return self.characteristics.magic_points.current
+        return self.characteristics["magic_points"].current
     @property
     def SAN(self):
-        return self.characteristics.initial_sanity.current
+        return self.characteristics["initial_sanity"].current
     @property
     def IDEA(self):
-        return self.characteristics.idea.current
+        return self.characteristics["idea"].current
     @property
     def LUCK(self):
-        return self.characteristics.luck.current
+        return self.characteristics["luck"].current
     @property
     def KNOWLEDGE(self):
-        return self.characteristics.knowledge.current
+        return self.characteristics["knowledge"].current

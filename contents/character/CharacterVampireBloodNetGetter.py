@@ -73,20 +73,20 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
             instance.personal_data.backstory = data["pc_making_memo"] # その他メモ
 
             # 能力値
-            instance.characteristics.strength.set_values(data["NA1"], data["NS1"], data["NM1"], data["NP1"])
-            instance.characteristics.constitution.set_values(data["NA2"], data["NS2"], data["NM2"], data["NP2"])
-            instance.characteristics.power.set_values(data["NA3"], data["NS3"], data["NM3"], data["NP3"])
-            instance.characteristics.dexterity.set_values(data["NA4"], data["NS4"], data["NM4"], data["NP4"])
-            instance.characteristics.appearance.set_values(data["NA5"], data["NS5"], data["NM5"], data["NP5"])
-            instance.characteristics.size.set_values(data["NA6"], data["NS6"], data["NM6"], data["NP6"])
-            instance.characteristics.intelligence.set_values(data["NA7"], data["NS7"], data["NM7"], data["NP7"])
-            instance.characteristics.education.set_values(data["NA8"], data["NS8"], data["NM8"], data["NP8"])
-            instance.characteristics.hit_points.set_values(data["NA9"], data["NS9"], data["NM9"], data["NP9"])
-            instance.characteristics.magic_points.set_values(data["NA10"], data["NS10"], data["NM10"], data["NP10"])
-            instance.characteristics.initial_sanity.set_values(data["NA11"], data["NS11"], data["NM11"], data["NP11"])
-            instance.characteristics.idea.set_values(data["NA12"], data["NS12"], data["NM12"], data["NP12"])
-            instance.characteristics.luck.set_values(data["NA13"], data["NS13"], data["NM13"], data["NP13"])
-            instance.characteristics.knowledge.set_values(data["NA14"], data["NS14"], data["NM14"], data["NP14"])
+            instance.characteristics["strength"].set_values(data["NA1"], data["NS1"], data["NM1"], data["NP1"])
+            instance.characteristics["constitution"].set_values(data["NA2"], data["NS2"], data["NM2"], data["NP2"])
+            instance.characteristics["power"].set_values(data["NA3"], data["NS3"], data["NM3"], data["NP3"])
+            instance.characteristics["dexterity"].set_values(data["NA4"], data["NS4"], data["NM4"], data["NP4"])
+            instance.characteristics["appearance"].set_values(data["NA5"], data["NS5"], data["NM5"], data["NP5"])
+            instance.characteristics["size"].set_values(data["NA6"], data["NS6"], data["NM6"], data["NP6"])
+            instance.characteristics["intelligence"].set_values(data["NA7"], data["NS7"], data["NM7"], data["NP7"])
+            instance.characteristics["education"].set_values(data["NA8"], data["NS8"], data["NM8"], data["NP8"])
+            instance.characteristics["hit_points"].set_values(data["NA9"], data["NS9"], data["NM9"], data["NP9"])
+            instance.characteristics["magic_points"].set_values(data["NA10"], data["NS10"], data["NM10"], data["NP10"])
+            instance.characteristics["initial_sanity"].set_values(data["NA11"], data["NS11"], data["NM11"], data["NP11"])
+            instance.characteristics["idea"].set_values(data["NA12"], data["NS12"], data["NM12"], data["NP12"])
+            instance.characteristics["luck"].set_values(data["NA13"], data["NS13"], data["NM13"], data["NP13"])
+            instance.characteristics["knowledge"].set_values(data["NA14"], data["NS14"], data["NM14"], data["NP14"])
 
             # SAN値
             instance.sanity_points.current = data["SAN_Left"]
