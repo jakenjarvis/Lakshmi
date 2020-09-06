@@ -8,6 +8,8 @@ import pytz
 
 from LakshmiEnvironmentVariables import LakshmiEnvironmentVariables
 from common.GoogleCredentialsManager import GoogleCredentialsManager
+from contents.character.LakshmiCharactersSheet import LakshmiCharactersSheet
+from contents.character.CharactersSheetController import CharactersSheetController
 
 # NOTE: キャラ設定：セリフ少な目で、おとなしい感じの、点々多めで、言い切りタイプ。
 #       柔らかいイメージ。林檎好き。
@@ -28,13 +30,20 @@ class LakshmiBrainStorage():
 
     def __init__(self):
         self.__environment = LakshmiEnvironmentVariables()
-        print("start GoogleCredentialsManager")
+        print("Start GoogleConnection.")
         self.__gcmanager = GoogleCredentialsManager(
             self.__environment.get_google_credentials_json(),
             self.__environment.get_google_credentials_scopes()
             )
+        print("Start ServiceAccount Connection.")
         self.__gcmanager.getCredentials_FromServiceAccount()
-        print("end GoogleCredentialsManager")
+        print("Start Access to spreadsheet.")
+        self.__sheet_id = self.__environment.get_spreadsheet_id()
+        self.__pandasheet = LakshmiCharactersSheet(self.__gcmanager, self.__sheet_id)
+        #self.__pandasheet.load()
+        self.__sheet_controller = CharactersSheetController(self.__pandasheet)
+        self.__sheet_controller.load()
+        print("End GoogleConnection.")
 
         # 最終挨拶発言者別日時記録
         self.last_say_hello = {}
@@ -61,6 +70,18 @@ class LakshmiBrainStorage():
     @property
     def gcmanager(self):
         return self.__gcmanager
+
+    @property
+    def sheet_id(self):
+        return self.__sheet_id
+
+    @property
+    def pandasheet(self):
+        return self.__pandasheet
+
+    @property
+    def sheet_controller(self):
+        return self.__sheet_controller
 
     # --------------------------------------------------------------------------------
     # Common
@@ -160,3 +181,15 @@ class LakshmiBrainStorage():
     def get_character_message_to_ask_the_developer_for_help(self):
         # 原因不明のエラーで開発者に助けを求めるときのエラーメッセージ
         return "私の中で……何かが起こったようなの………。これを……開発者さんに知らせてあげて！"
+
+    def get_character_message_for_unsupported_sites(self):
+        # 対応していないサイトのURLが指定されたときのエラーメッセージ
+        return "…むぅ。私はそのサイト………知らないわ……。ごめんなさい………。"
+
+    def get_character_message_for_not_callofcthulhu_investigator(self):
+        # 対応していないサイトのURLが指定されたときのエラーメッセージ
+        return "…あ。クトゥルフの探索者じゃないキャラは扱えないわ……。ごめんなさい………。"
+
+    def get_character_message_for_character_not_found(self):
+        # 存在しないキャラクターが指定されたときのエラーメッセージ
+        return "ねぇ……。そのキャラクター……見つからないわ………何か間違ってない？"

@@ -5,17 +5,22 @@ import pandas as pd
 
 from common.PandasGoogleSpreadsheetWrapper import PandasGoogleSpreadsheetWrapper
 
-class CharactersSheet(PandasGoogleSpreadsheetWrapper):
+class LakshmiCharactersSheet(PandasGoogleSpreadsheetWrapper):
+    SHEET_NAME = "Characters"
+
     def __init__(self, credentialsManager, spreadsheetId, dataFrame=None):
         super().__init__(credentialsManager, spreadsheetId, dataFrame)
 
-        # TODO: 項目確認が必要
         self.nomalColumnNames = {
-            "所有者ID": "authorId",
-            "所有者名": "authorName",
-            "Key": "uniqueKey",
+            "キャラクタID": "unique_id",
+            "SiteId1": "site_id1",
+            "SiteId2": "site_id2",
+            "SiteUrl": "site_url",
+            "キャラクター名": "character_name",
+            "画像URL": "character_image_url",
+            "所有者ID": "author_id",
+            "所有者名": "author_name",
             "Active": "active",
-            "名前": "name",
         }
         self.reverseColumnNames = {v: k for k, v in self.nomalColumnNames.items()}
 
@@ -29,7 +34,7 @@ class CharactersSheet(PandasGoogleSpreadsheetWrapper):
         self._renameColumnNamesToId()
 
     def onSavePreprocessing(self, df):
-        self._sortRows() # Save前にソートする。
+        #self._sortRows() # Save前にソートする。
         self._renameColumnNamesToName()
 
     def onSavePostprocessing(self, df):
@@ -43,12 +48,14 @@ class CharactersSheet(PandasGoogleSpreadsheetWrapper):
         print(r"  Set ColumnNames to Name")
         self.df.rename(columns=self.reverseColumnNames, inplace=True)
 
-    def _sortRows(self):
-        print(r"  Sort rows: uniqueKey")
-        self.df.sort_values(by=[r"uniqueKey"], ascending=True, inplace=True)
-
     def mergeDataFrame(self, dataFrame):
-        super().merge(dataFrame, r'uniqueKey')
+        super().merge(dataFrame, r'unique_id')
 
     def organizeDataFrameColumns(self, dataFrame):
         return dataFrame[list(self.nomalColumnNames.values())]
+
+    def load(self):
+        return super().load(LakshmiCharactersSheet.SHEET_NAME)
+
+    def save(self):
+        return super().save(LakshmiCharactersSheet.SHEET_NAME)

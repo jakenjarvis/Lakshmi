@@ -8,5 +8,6 @@ pandas
 numpy
 gspread
 gspread_pandas
+ulid
 nagisa
 gensim

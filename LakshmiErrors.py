@@ -10,3 +10,12 @@ class ArgumentOutOfRangeException(CommandError):
 
 class SubcommandNotFoundException(CommandError):
     pass
+
+class UnsupportedSitesException(CommandError):
+    pass
+
+class NotCallOfCthulhuInvestigatorException(CommandError):
+    pass
+
+class CharacterNotFoundException(CommandError):
+    pass
