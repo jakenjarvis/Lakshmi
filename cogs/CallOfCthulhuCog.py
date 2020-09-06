@@ -45,8 +45,8 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             manager = CharacterManager(self.bot)
             character = manager.character_add(context, url)
 
-            result += f"…ふぅ。無事……{character.name}さんを登録したわ……。\n"
-            result += f"Idは {character.unique_key} よ…。"
+            result += f"…ふぅ。無事……{character.character_name}さんを登録したわ……。\n"
+            result += f"Idは {character.unique_id} よ…。"
             await context.send(result)
 
         except Exception as e:
@@ -66,15 +66,13 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
             manager = CharacterManager(self.bot)
 
-            characters_list = manager.character_list(context)
-
-            if len(characters_list) >= 1:
-                result += f"…ん。あなたの登録キャラクターは次の{len(characters_list)}人よ……。"
+            records = manager.character_list(context)
+            if len(records) >= 1:
+                result += f"…ん。あなたの登録キャラクターは次の{len(records)}人よ……。"
                 result += f"\n"
                 result += f"```"
-                for char in characters_list:
-                    act = "●" if char.active else " "
-                    result += f"{act} {char.unique_key} : {char.personal_data.name}\n"
+                for record in records:
+                    result += f"{record.to_display_string()}\n"
                 result += f"```"
             else:
                 result += f"あ……。あなたの登録キャラクターが見つからないわ………。"
@@ -92,13 +90,13 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             raise SubcommandNotFoundException()
 
     @info.command(name='full', aliases=['f'])
-    async def info_full(self, context: commands.Context, unique_key: str):
+    async def info_full(self, context: commands.Context, unique_id: str):
         """ キャラクターシートのIDを指定して情報（Full）を表示します。 """
         try:
             await context.trigger_typing()
 
             manager = CharacterManager(self.bot)
-            character = manager.info_full(context, unique_key)
+            character = manager.info_full(context, unique_id)
 
             embed = InvestigatorEmbedCreator.create_full_status(character)
             await context.send(embed=embed)

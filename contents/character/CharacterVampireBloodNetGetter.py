@@ -46,14 +46,16 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
 
         if response:
             # NOTE: 基本的に上書きできない項目は触らないこと。
-            #instance.unique_key = ""                              # Key
-            instance.site_url = site_url                          # SiteUrl
-            instance.site_name = self.get_site_title()            # SiteName
-            instance.site_favicon_url = self.get_favicon_url()    # SiteFaviconUrl
+            #instance.unique_id = ""                              # Key
+            instance.site_id1 = str(data["data_id"])                # SiteId1
+            instance.site_id2 = str(data["phrase"])                 # SiteId2
+            instance.site_url = site_url                            # SiteUrl
+            instance.site_name = self.get_site_title()              # SiteName
+            instance.site_favicon_url = self.get_favicon_url()      # SiteFaviconUrl
             #instance.author_id = ""                               # 所有者ID
             #instance.author_name = ""                             # 所有者名
             #instance.active = False                               # Active
-            instance.tag = data["pc_tags"]                        # タグ
+            instance.tag = data["pc_tags"]                          # タグ
             #instance.image_url = ""                               # 画像URL
 
             # パーソナルデータ

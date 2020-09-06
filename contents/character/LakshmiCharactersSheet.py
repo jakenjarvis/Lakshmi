@@ -12,13 +12,15 @@ class LakshmiCharactersSheet(PandasGoogleSpreadsheetWrapper):
         super().__init__(credentialsManager, spreadsheetId, dataFrame)
 
         self.nomalColumnNames = {
-            "Key": "unique_key",
+            "キャラクタID": "unique_id",
+            "SiteId1": "site_id1",
+            "SiteId2": "site_id2",
             "SiteUrl": "site_url",
+            "キャラクター名": "character_name",
+            "画像URL": "character_image_url",
             "所有者ID": "author_id",
             "所有者名": "author_name",
             "Active": "active",
-            "名前": "name",
-            "画像Url": "image_url",
         }
         self.reverseColumnNames = {v: k for k, v in self.nomalColumnNames.items()}
 
@@ -46,12 +48,8 @@ class LakshmiCharactersSheet(PandasGoogleSpreadsheetWrapper):
         print(r"  Set ColumnNames to Name")
         self.df.rename(columns=self.reverseColumnNames, inplace=True)
 
-    #def _sortRows(self):
-    #    print(r"  Sort rows: unique_key")
-    #    self.df.sort_values(by=[r"unique_key"], ascending=True, inplace=True)
-
     def mergeDataFrame(self, dataFrame):
-        super().merge(dataFrame, r'unique_key')
+        super().merge(dataFrame, r'unique_id')
 
     def organizeDataFrameColumns(self, dataFrame):
         return dataFrame[list(self.nomalColumnNames.values())]

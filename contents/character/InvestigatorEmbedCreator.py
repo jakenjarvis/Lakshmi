@@ -12,7 +12,7 @@ class InvestigatorEmbedCreator():
         onelinebackstory = char.backstory.splitlines()[0]
 
         result = discord.Embed(
-            title=f"{char.name} - `{char.occupation}` - `{char.sex}({char.age}歳)`",
+            title=f"{char.character_name} - `{char.occupation}` - `{char.sex}({char.age}歳)`",
             description=f"{onelinebackstory}"
             )
         result.set_author(

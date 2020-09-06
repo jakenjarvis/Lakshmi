@@ -101,7 +101,9 @@ class SkillPoints:
 # 探索者
 @dataclass
 class Investigator:
-    unique_key: str = ""        # Key
+    unique_id: str = ""        # Key
+    site_id1: str = ""          # SiteId1
+    site_id2: str = ""          # SiteId2
     site_url: str = ""          # SiteUrl
     site_name: str = ""         # SiteName
     site_favicon_url: str = ""  # SiteFaviconUrl
@@ -219,8 +221,13 @@ class Investigator:
 
     # 名前
     @property
-    def name(self):
+    def character_name(self):
         return self.personal_data.name
+
+    # 画像URL
+    @property
+    def character_image_url(self):
+        return self.image_url
 
     # 職業
     @property
