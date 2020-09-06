@@ -9,6 +9,7 @@ import pytz
 from LakshmiEnvironmentVariables import LakshmiEnvironmentVariables
 from common.GoogleCredentialsManager import GoogleCredentialsManager
 from contents.character.LakshmiCharactersSheet import LakshmiCharactersSheet
+from contents.character.CharactersSheetController import CharactersSheetController
 
 # NOTE: キャラ設定：セリフ少な目で、おとなしい感じの、点々多めで、言い切りタイプ。
 #       柔らかいイメージ。林檎好き。
@@ -39,7 +40,9 @@ class LakshmiBrainStorage():
         print("Start Access to spreadsheet.")
         self.__sheet_id = self.__environment.get_spreadsheet_id()
         self.__pandasheet = LakshmiCharactersSheet(self.__gcmanager, self.__sheet_id)
-        self.__pandasheet.load()
+        #self.__pandasheet.load()
+        self.__sheet_controller = CharactersSheetController(self.__pandasheet)
+        self.__sheet_controller.load()
         print("End GoogleConnection.")
 
         # 最終挨拶発言者別日時記録
@@ -75,6 +78,10 @@ class LakshmiBrainStorage():
     @property
     def pandasheet(self):
         return self.__pandasheet
+
+    @property
+    def sheet_controller(self):
+        return self.__sheet_controller
 
     # --------------------------------------------------------------------------------
     # Common

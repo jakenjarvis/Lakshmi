@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from typing import List, Dict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, fields, field
 
 # パーソナルデータ
 @dataclass
@@ -31,7 +31,7 @@ class SanityPoints:
 # 能力セット
 @dataclass
 class AbilitySet:
-    ability_name: str
+    ability_name: str           # アビリティ名
 
     base: int = 0               # 基礎能力値
     other: int = 0              # その他増加分
@@ -54,8 +54,8 @@ class AbilitySet:
 # 技能セット
 @dataclass
 class SkillSet():
-    skill_name: str
-    skill_subname: str
+    skill_name: str             # スキル名
+    skill_subname: str          # サブスキル名
 
     skill_type: str = "default" # default:標準スキル, additions:追加スキル
 
@@ -91,41 +91,41 @@ class SkillSet():
 # 特徴
 @dataclass
 class Characteristics():
-    strength: AbilitySet = AbilitySet("STR")
-    constitution: AbilitySet = AbilitySet("CON")
-    power: AbilitySet = AbilitySet("POW")
-    dexterity: AbilitySet = AbilitySet("DEX")
-    appearance: AbilitySet = AbilitySet("APP")
-    size: AbilitySet = AbilitySet("SIZ")
-    intelligence: AbilitySet = AbilitySet("INT")
-    education: AbilitySet = AbilitySet("EDU")
-    hit_points: AbilitySet = AbilitySet("HP")
-    magic_points: AbilitySet = AbilitySet("MP")
-    initial_sanity: AbilitySet = AbilitySet("初期SAN")
-    idea: AbilitySet = AbilitySet("アイデア")
-    luck: AbilitySet = AbilitySet("幸運")
-    knowledge: AbilitySet = AbilitySet("知識")
+    strength: AbilitySet = field(default=AbilitySet("STR"))
+    constitution: AbilitySet = field(default=AbilitySet("CON"))
+    power: AbilitySet = field(default=AbilitySet("POW"))
+    dexterity: AbilitySet = field(default=AbilitySet("DEX"))
+    appearance: AbilitySet = field(default=AbilitySet("APP"))
+    size: AbilitySet = field(default=AbilitySet("SIZ"))
+    intelligence: AbilitySet = field(default=AbilitySet("INT"))
+    education: AbilitySet = field(default=AbilitySet("EDU"))
+    hit_points: AbilitySet = field(default=AbilitySet("HP"))
+    magic_points: AbilitySet = field(default=AbilitySet("MP"))
+    initial_sanity: AbilitySet = field(default=AbilitySet("初期SAN"))
+    idea: AbilitySet = field(default=AbilitySet("アイデア"))
+    luck: AbilitySet = field(default=AbilitySet("幸運"))
+    knowledge: AbilitySet = field(default=AbilitySet("知識"))
 
-    def __post_init__(self):
-        self.__category1 = [
-            self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education
-            ]
-        self.__category2 = [
-            self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
-            ]
-        self.__category_all = [
-            self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education,
-            self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
-            ]
+    #__category_all: List[AbilitySet] = field(default_factory=list)
 
-    def category1_keys(self):
-        return self.__category1
+    #def __post_init__(self):
+    #    self.__category1 = [
+    #        self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education
+    #        ]
+    #    self.__category2 = [
+    #        self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
+    #        ]
+    #    self.__category_all = self.__set_category_all_keys()
 
-    def category2_keys(self):
-        return self.__category2
+    #@classmethod
+    #def __set_category_all_keys(self):
+    #    return [
+    #        self.strength, self.constitution, self.power, self.dexterity, self.appearance, self.size, self.intelligence, self.education,
+    #        self.hit_points, self.magic_points, self.initial_sanity, self.idea, self.luck, self.knowledge
+    #    ]
 
     def category_all_keys(self):
-        return self.__category_all
+        return [getattr(self, fld.name) for fld in fields(self)]
 
 # 技能ポイント
 @dataclass
@@ -151,11 +151,11 @@ class Investigator:
     image_url: str = ""         # 画像URL
 
     # 特徴
-    characteristics: Characteristics = Characteristics()
+    characteristics: Characteristics = field(default_factory=Characteristics)
     # SAN値
-    sanity_points: SanityPoints = SanityPoints()
+    sanity_points: SanityPoints = field(default_factory=SanityPoints)
     # 技能
-    skill_points: SkillPoints = SkillPoints()
+    skill_points: SkillPoints = field(default_factory=SkillPoints)
 
     # 戦闘技能
     combat_skills: Dict[str, SkillSet] = field(default_factory=lambda: {
@@ -238,7 +238,7 @@ class Investigator:
     # TODO:
 
     # パーソナルデータ
-    personal_data: PersonalData = PersonalData()
+    personal_data: PersonalData = field(default_factory=PersonalData)
 
     # 名前
     @property

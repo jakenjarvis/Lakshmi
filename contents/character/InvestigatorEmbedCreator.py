@@ -20,9 +20,9 @@ class InvestigatorEmbedCreator():
             url=f"{char.site_url}",
             icon_url=char.site_favicon_url
             )
-        result.set_thumbnail(
-            url="https://cdn.discordapp.com/embed/avatars/0.png"
-            )
+
+        if len(char.image_url) >= 1:
+            result.set_thumbnail(url=f"{char.image_url}")
 
         # 探索者付随情報
         out_value = f""

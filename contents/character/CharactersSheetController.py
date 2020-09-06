@@ -3,6 +3,7 @@
 from distutils.util import strtobool
 
 import pandas as pd
+import ulid
 
 from contents.character.LakshmiCharactersSheet import LakshmiCharactersSheet
 from LakshmiEnvironmentVariables import LakshmiEnvironmentVariables
@@ -59,6 +60,17 @@ class CharactersSheetController():
             row["image_url"] = str(image_url)
             self.pandasheet.df.iloc[target_index] = row
             #print("YYYY2: " + str(row["active"]))
+
+    def assign_unique_key(self, site_url: str) -> str:
+        result = ""
+        df = self.pandasheet.df[self.pandasheet.df["site_url"] == site_url]
+        if len(df) >= 1:
+            # 既知のキャラクター。既存IDの割り当て
+            result = str(df["unique_key"].values[0])
+        else:
+            # 未知のキャラクター。新規IDの割り当て
+            result = ulid.new()
+        return result
 
     def find_character_by_site_url(self, author_id: str, site_url: str) -> pd.DataFrame:
         return self.pandasheet.df[
