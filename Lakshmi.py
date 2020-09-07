@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from MultilineBot import MultilineBot
 from LakshmiHelpCommand import LakshmiHelpCommand
-from LakshmiErrors import PermissionNotFoundException, ArgumentOutOfRangeException, SubcommandNotFoundException, UnsupportedSitesException, NotCallOfCthulhuInvestigatorException, CharacterNotFoundException
+import LakshmiErrors
 
 from contents.LakshmiBrainStorage import LakshmiBrainStorage
 
@@ -31,11 +31,11 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(context: commands.Context, error):
-    if isinstance(error, ArgumentOutOfRangeException):
+    if isinstance(error, LakshmiErrors.ArgumentOutOfRangeException):
         character_message = bot.storage.get_character_message_for_argument_out_of_range_exception()
         await context.send(f'{context.author.mention} {character_message}')
 
-    elif isinstance(error, PermissionNotFoundException):
+    elif isinstance(error, LakshmiErrors.PermissionNotFoundException):
         character_message = bot.storage.get_character_message_for_permission_not_found_exception()
         await context.send(f'{context.author.mention} {character_message}')
 
@@ -43,20 +43,24 @@ async def on_command_error(context: commands.Context, error):
         character_message = bot.storage.get_character_message_for_missing_required_argument()
         await context.send(f'{context.author.mention} {character_message}')
 
-    elif isinstance(error, SubcommandNotFoundException):
+    elif isinstance(error, LakshmiErrors.SubcommandNotFoundException):
         character_message = bot.storage.get_character_message_for_command_not_found()
         await context.send(f'{context.author.mention} {character_message}')
 
-    elif isinstance(error, UnsupportedSitesException):
+    elif isinstance(error, LakshmiErrors.UnsupportedSitesException):
         character_message = bot.storage.get_character_message_for_unsupported_sites()
         await context.send(f'{context.author.mention} {character_message}')
 
-    elif isinstance(error, NotCallOfCthulhuInvestigatorException):
+    elif isinstance(error, LakshmiErrors.NotCallOfCthulhuInvestigatorException):
         character_message = bot.storage.get_character_message_for_not_callofcthulhu_investigator()
         await context.send(f'{context.author.mention} {character_message}')
 
-    elif isinstance(error, CharacterNotFoundException):
+    elif isinstance(error, LakshmiErrors.CharacterNotFoundException):
         character_message = bot.storage.get_character_message_for_character_not_found()
+        await context.send(f'{context.author.mention} {character_message}')
+
+    elif isinstance(error, LakshmiErrors.ImageNotFoundException):
+        character_message = bot.storage.get_character_message_for_image_not_found()
         await context.send(f'{context.author.mention} {character_message}')
 
     elif isinstance(error, commands.CommandNotFound):

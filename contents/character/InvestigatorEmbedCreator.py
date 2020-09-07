@@ -22,7 +22,7 @@ class InvestigatorEmbedCreator():
             )
 
         if len(char.image_url) >= 1:
-            result.set_thumbnail(url=f"{char.image_url}")
+            result.set_thumbnail(url=char.image_url)
 
         # 探索者付随情報
         out_value = f""

@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
-from LakshmiErrors import SubcommandNotFoundException
+import LakshmiErrors
 from contents.character.CharacterManager import CharacterManager
 from contents.character.Investigator import Investigator
 
@@ -27,13 +27,13 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     async def coc(self, context: commands.Context):
         """詳細は :help coc で確認してください。"""
         if context.invoked_subcommand is None:
-            raise SubcommandNotFoundException()
+            raise LakshmiErrors.SubcommandNotFoundException()
 
     @coc.group(aliases=['char','c'])
     async def character(self, context: commands.Context):
         """詳細は :help coc character で確認してください。"""
         if context.invoked_subcommand is None:
-            raise SubcommandNotFoundException()
+            raise LakshmiErrors.SubcommandNotFoundException()
 
     @character.command(name='add', aliases=['a'])
     async def character_add(self, context: commands.Context, url: str):
@@ -83,11 +83,53 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
+    @character.command(name='change', aliases=['c'])
+    async def character_change(self, context: commands.Context, unique_id: str):
+        """ アクティブなキャラクターを指定したキャラクターに切り替えます。 """
+        try:
+            result = f""
+
+            await context.trigger_typing()
+
+            manager = CharacterManager(self.bot)
+            records = manager.character_change(context, unique_id)
+
+            result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。\n"
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @character.group(aliases=['s'])
+    async def set(self, context: commands.Context):
+        """詳細は :help coc character set で確認してください。"""
+        if context.invoked_subcommand is None:
+            raise LakshmiErrors.SubcommandNotFoundException()
+
+    @set.command(name='image', aliases=['img', 'i'])
+    async def set_image(self, context: commands.Context, unique_id: str, image_url: str):
+        """ キャラクターと画像URLを指定して、指定したキャラクターのイメージ画像を登録します。 """
+        try:
+            result = f""
+
+            await context.trigger_typing()
+
+            manager = CharacterManager(self.bot)
+            records = manager.set_image(context, unique_id, image_url)
+
+            result += f"…ん。{records.character_name}さんの画像を登録したわ……。\n"
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
     @character.group(aliases=['i'])
     async def info(self, context: commands.Context):
         """詳細は :help coc character info で確認してください。"""
         if context.invoked_subcommand is None:
-            raise SubcommandNotFoundException()
+            raise LakshmiErrors.SubcommandNotFoundException()
 
     @info.command(name='full', aliases=['f'])
     async def info_full(self, context: commands.Context, unique_id: str):

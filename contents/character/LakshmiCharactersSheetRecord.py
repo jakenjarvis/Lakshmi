@@ -23,7 +23,7 @@ class LakshmiCharactersSheetRecord:
 
     active: bool = False            # Active
 
-    def get_active_to_string(self):
+    def get_active_to_string(self) -> str:
         return "TRUE" if bool(self.active) else "FALSE"
 
     def set_active_from_string(self, value):
@@ -41,7 +41,7 @@ class LakshmiCharactersSheetRecord:
         self.character_image_url = str(character_image_url)
         self.author_id = str(author_id)
         self.author_name = str(author_name)
-        self.active = self.set_active_from_string(active)
+        self.set_active_from_string(active)
         return self
 
     def set_values_by_investigator(self, target: Investigator):
@@ -53,7 +53,7 @@ class LakshmiCharactersSheetRecord:
         self.character_image_url = str(target.character_image_url)
         self.author_id = str(target.author_id)
         self.author_name = str(target.author_name)
-        self.active = self.set_active_from_string(target.active)
+        self.set_active_from_string(target.active)
         return self
 
     def to_display_string(self):

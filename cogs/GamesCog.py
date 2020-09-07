@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from contents.GameHighAndLow import GameHighAndLow
-from LakshmiErrors import SubcommandNotFoundException
+import LakshmiErrors
 
 class GamesCog(commands.Cog, name='ゲーム系'):
     def __init__(self, bot):
@@ -15,7 +15,7 @@ class GamesCog(commands.Cog, name='ゲーム系'):
     async def game(self, context: commands.Context):
         """詳細は :help game で確認してください。"""
         if context.invoked_subcommand is None:
-            raise SubcommandNotFoundException()
+            raise LakshmiErrors.SubcommandNotFoundException()
 
     @game.command(aliases=['highlow','hl'])
     async def highandlow(self, context: commands.Context):
