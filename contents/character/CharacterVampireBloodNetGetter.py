@@ -4,7 +4,7 @@ import requests
 import json
 import re
 
-from LakshmiErrors import NotCallOfCthulhuInvestigatorException
+import LakshmiErrors
 from contents.character.Investigator import Investigator, SkillSet
 from contents.character.AbstractCharacterGetter import AbstractCharacterGetter
 
@@ -42,7 +42,7 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
 
         # COCのデータでなければ拒否する。
         if data["game"] != "coc":
-            raise NotCallOfCthulhuInvestigatorException()
+            raise LakshmiErrors.NotCallOfCthulhuInvestigatorException()
 
         if response:
             # NOTE: 基本的に上書きできない項目は触らないこと。

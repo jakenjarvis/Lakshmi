@@ -193,3 +193,7 @@ class LakshmiBrainStorage():
     def get_character_message_for_character_not_found(self):
         # 存在しないキャラクターが指定されたときのエラーメッセージ
         return "ねぇ……。そのキャラクター……見つからないわ………何か間違ってない？"
+
+    def get_character_message_for_image_not_found(self):
+        # 存在しない画像が指定されたときのエラーメッセージ
+        return "…むぅ。その画像……見つからないわ………もう一度ちゃんと確認してみて……。"

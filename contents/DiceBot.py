@@ -8,17 +8,17 @@ import random
 import mojimoji
 from discord.ext import commands
 
-from LakshmiErrors import ArgumentOutOfRangeException
+import LakshmiErrors
 
 def replace_dice_string(match):
     result = ""
     number = int(match.group(2))
     if number >= 100:  # ダイスの数の最大
-        raise ArgumentOutOfRangeException()
+        raise LakshmiErrors.ArgumentOutOfRangeException()
 
     surface = int(match.group(3))
     if surface >= 65536: # ダイスの面の最大
-        raise ArgumentOutOfRangeException()
+        raise LakshmiErrors.ArgumentOutOfRangeException()
 
     result = "(" + "+".join(str(random.randint(1, surface)) for _ in range(number)) + ")"
     return result

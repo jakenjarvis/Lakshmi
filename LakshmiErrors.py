@@ -19,3 +19,6 @@ class NotCallOfCthulhuInvestigatorException(CommandError):
 
 class CharacterNotFoundException(CommandError):
     pass
+
+class ImageNotFoundException(CommandError):
+    pass

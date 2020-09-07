@@ -72,6 +72,9 @@ class CharactersSheetController():
             target_index = int(df.index[0])
             self.update_character_by_index(target_index, record)
 
+    def set_inactive_all_character_by_author_id(self, author_id: str):
+        self.pandasheet.df.active[self.pandasheet.df.author_id == author_id] = "FALSE"
+
     def assign_unique_id(self, site_id1: str, site_id2: str, site_url: str) -> str:
         result = ""
         # NOTE: ここでは、author_idで絞り込まない。
