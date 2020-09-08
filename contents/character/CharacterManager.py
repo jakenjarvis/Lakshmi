@@ -187,7 +187,7 @@ class CharacterManager():
         await self.background_save()
         return result
 
-    async def info_full(self, context: commands.Context, unique_id: str) -> Investigator:
+    async def info_information(self, context: commands.Context, unique_id: str) -> Investigator:
         result = Investigator()
 
         author_id = str(context.author.id)

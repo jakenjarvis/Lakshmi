@@ -130,9 +130,63 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         try:
             await context.trigger_typing()
 
-            character = await self.manager.info_full(context, unique_id)
+            character = await self.manager.info_information(context, unique_id)
 
             embed = InvestigatorEmbedCreator.create_full_status(character)
+
+            # 画像リンクの有効性をチェックして警告表示を入れる。
+            if len(character.image_url) >= 1:
+                if not await self.manager.is_image_url(character.image_url):
+                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                    out_value += f"{character.image_url}"
+                    embed.add_field(name="警告", value=out_value, inline=False)
+
+            await context.send(embed=embed)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @info.command(name='short', aliases=['s'])
+    async def info_short(self, context: commands.Context, unique_id: str):
+        """ キャラクターシートのIDを指定して情報（short）を表示します。 """
+        try:
+            await context.trigger_typing()
+
+            character = await self.manager.info_information(context, unique_id)
+
+            embed = InvestigatorEmbedCreator.create_short_status(character)
+
+            # 画像リンクの有効性をチェックして警告表示を入れる。
+            if len(character.image_url) >= 1:
+                if not await self.manager.is_image_url(character.image_url):
+                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                    out_value += f"{character.image_url}"
+                    embed.add_field(name="警告", value=out_value, inline=False)
+
+            await context.send(embed=embed)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @info.command(name='backstory', aliases=['back', 'story', 'bs', 'b'])
+    async def info_backstory(self, context: commands.Context, unique_id: str):
+        """ キャラクターシートのIDを指定して情報（backstory）を表示します。 """
+        try:
+            await context.trigger_typing()
+
+            character = await self.manager.info_information(context, unique_id)
+
+            embed = InvestigatorEmbedCreator.create_backstory_status(character)
+
+            # 画像リンクの有効性をチェックして警告表示を入れる。
+            if len(character.image_url) >= 1:
+                if not await self.manager.is_image_url(character.image_url):
+                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                    out_value += f"{character.image_url}"
+                    embed.add_field(name="警告", value=out_value, inline=False)
+
             await context.send(embed=embed)
 
         except Exception as e:
