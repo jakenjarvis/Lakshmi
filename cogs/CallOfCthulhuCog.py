@@ -22,6 +22,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     def __init__(self, bot):
         self.bot = bot
         #self.bot.storage
+        self.manager = CharacterManager(self.bot)
 
     @commands.group(aliases=['c'])
     async def coc(self, context: commands.Context):
@@ -42,8 +43,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             result = f""
             await context.trigger_typing()
 
-            manager = CharacterManager(self.bot)
-            character = manager.character_add(context, url)
+            character = await self.manager.character_add(context, url)
 
             result += f"…ふぅ。無事……{character.character_name}さんを登録したわ……。\n"
             result += f"Idは {character.unique_id} よ…。"
@@ -58,15 +58,12 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         """ Lakshmiに登録済みのキャラクターシートの一覧を表示します。 """
         try:
             result = f""
+            await context.trigger_typing()
 
             author_name = str(context.author.name)
             display_name = str(context.author.display_name)
 
-            await context.trigger_typing()
-
-            manager = CharacterManager(self.bot)
-
-            records = manager.character_list(context)
+            records = await self.manager.character_list(context)
             if len(records) >= 1:
                 result += f"…ん。あなたの登録キャラクターは次の{len(records)}人よ……。"
                 result += f"\n"
@@ -88,11 +85,9 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         """ アクティブなキャラクターを指定したキャラクターに切り替えます。 """
         try:
             result = f""
-
             await context.trigger_typing()
 
-            manager = CharacterManager(self.bot)
-            records = manager.character_change(context, unique_id)
+            records = await self.manager.character_change(context, unique_id)
 
             result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。\n"
             await context.send(result)
@@ -112,11 +107,9 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         """ キャラクターと画像URLを指定して、指定したキャラクターのイメージ画像を登録します。 """
         try:
             result = f""
-
             await context.trigger_typing()
 
-            manager = CharacterManager(self.bot)
-            records = manager.set_image(context, unique_id, image_url)
+            records = await self.manager.set_image(context, unique_id, image_url)
 
             result += f"…ん。{records.character_name}さんの画像を登録したわ……。\n"
             await context.send(result)
@@ -137,8 +130,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         try:
             await context.trigger_typing()
 
-            manager = CharacterManager(self.bot)
-            character = manager.info_full(context, unique_id)
+            character = await self.manager.info_full(context, unique_id)
 
             embed = InvestigatorEmbedCreator.create_full_status(character)
             await context.send(embed=embed)
