@@ -21,6 +21,7 @@ class LakshmiCharactersSheet(PandasGoogleSpreadsheetWrapper):
             "所有者ID": "author_id",
             "所有者名": "author_name",
             "Active": "active",
+            "Lost": "lost",
         }
         self.reverseColumnNames = {v: k for k, v in self.nomalColumnNames.items()}
 

@@ -58,6 +58,7 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
             #instance.author_id = ""                               # 所有者ID
             #instance.author_name = ""                             # 所有者名
             #instance.active = False                               # Active
+            #instance.lost = False                                   # Lost
             instance.tag = data["pc_tags"]                          # タグ
             #instance.image_url = ""                               # 画像URL
 

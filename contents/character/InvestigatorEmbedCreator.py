@@ -16,8 +16,10 @@ class InvestigatorEmbedCreator():
         else:
             backstory = char.backstory
 
+        lst = "💀" if char.lost else ""
+
         result = discord.Embed(
-            title=f"{char.character_name} - `{char.occupation}` - `{char.sex}({char.age}歳)`",
+            title=f"{lst}{char.character_name} - `{char.occupation}` - `{char.sex}({char.age}歳)`",
             description=f"{backstory}"
             )
         result.set_author(
@@ -48,6 +50,8 @@ class InvestigatorEmbedCreator():
             out_value += f"`瞳の色: {char.personal_data.eye_color}`　"
         if len(char.personal_data.skin_color.strip()) >= 1:
             out_value += f"`肌の色: {char.personal_data.skin_color}`　"
+        if char.lost:
+            out_value += f"`<ロスト>`　"
         result.add_field(name="探索者付随情報", value=out_value, inline=False)
 
     @staticmethod
@@ -81,35 +85,45 @@ class InvestigatorEmbedCreator():
         for key in char.combat_skills.keys():
             skillset = char.combat_skills[key]
             out_value += InvestigatorEmbedCreator.__create_skillset_string(skillset, is_change_from_initial_value)
-        result.add_field(name="戦闘技能", value=out_value, inline=False)
+        out_value = out_value if len(out_value) >= 1 else "無し"
+        out_title = f"戦闘技能 `[初期値除外]`" if is_change_from_initial_value else f"戦闘技能"
+        result.add_field(name=out_title, value=out_value, inline=False)
 
         # 探索技能
         out_value = f""
         for key in char.search_skills.keys():
             skillset = char.search_skills[key]
             out_value += InvestigatorEmbedCreator.__create_skillset_string(skillset, is_change_from_initial_value)
-        result.add_field(name="探索技能", value=out_value, inline=False)
+        out_value = out_value if len(out_value) >= 1 else "無し"
+        out_title = f"探索技能 `[初期値除外]`" if is_change_from_initial_value else f"探索技能"
+        result.add_field(name=out_title, value=out_value, inline=False)
 
         # 行動技能
         out_value = f""
         for key in char.behavioral_skills.keys():
             skillset = char.behavioral_skills[key]
             out_value += InvestigatorEmbedCreator.__create_skillset_string(skillset, is_change_from_initial_value)
-        result.add_field(name="行動技能", value=out_value, inline=False)
+        out_value = out_value if len(out_value) >= 1 else "無し"
+        out_title = f"行動技能 `[初期値除外]`" if is_change_from_initial_value else f"行動技能"
+        result.add_field(name=out_title, value=out_value, inline=False)
 
         # 交渉技能
         out_value = f""
         for key in char.negotiation_skills.keys():
             skillset = char.negotiation_skills[key]
             out_value += InvestigatorEmbedCreator.__create_skillset_string(skillset, is_change_from_initial_value)
-        result.add_field(name="交渉技能", value=out_value, inline=False)
+        out_value = out_value if len(out_value) >= 1 else "無し"
+        out_title = f"交渉技能 `[初期値除外]`" if is_change_from_initial_value else f"交渉技能"
+        result.add_field(name=out_title, value=out_value, inline=False)
 
         # 知識技能
         out_value = f""
         for key in char.knowledge_skills.keys():
             skillset = char.knowledge_skills[key]
             out_value += InvestigatorEmbedCreator.__create_skillset_string(skillset, is_change_from_initial_value)
-        result.add_field(name="知識技能", value=out_value, inline=False)
+        out_value = out_value if len(out_value) >= 1 else "無し"
+        out_title = f"知識技能 `[初期値除外]`" if is_change_from_initial_value else f"知識技能"
+        result.add_field(name=out_title, value=out_value, inline=False)
 
     @staticmethod
     def create_full_status(char: Investigator) -> discord.Embed:

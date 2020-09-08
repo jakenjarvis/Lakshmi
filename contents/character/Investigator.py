@@ -110,6 +110,7 @@ class Investigator:
     author_id: str = ""         # 所有者ID
     author_name: str = ""       # 所有者名
     active: bool = False        # Active
+    lost: bool = False          # Lost
     tag: str = ""               # タグ
     image_url: str = ""         # 画像URL
 

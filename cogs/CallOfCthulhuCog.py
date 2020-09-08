@@ -13,9 +13,10 @@ from contents.character.Investigator import Investigator
 # :coc character add <URL> キャラ登録でスプレッドシート記録
 # :coc character delete <キャラID> キャラ登録情報削除
 # :coc character list 登録済みキャラの一覧表示
-# :coc character change <キャラID|active> 使用中キャラの設定
 # :coc character choice 使用中キャラの設定
 # :coc character set image <キャラID|active> <画像URL> で、キャラ画像URLの登録
+# :coc character set change <キャラID|active> 使用中キャラの設定
+# :coc character set lost <キャラID|active> キャラのロスト設定
 # :coc character info full <キャラID|active>  キャラのステータス表示（フル）
 # :coc character info short <キャラID|active>  キャラのステータス表示（簡易）
 # :coc character info backstory <キャラID|active>  キャラのステータス表示（キャラ紹介）
@@ -40,14 +41,19 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         await self.character_list(context)
 
     @commands.command()
-    async def ccc(self, context: commands.Context, unique_id: str):
-        """Shortcut : coc character change"""
-        await self.character_change(context, unique_id)
+    async def ccc(self, context: commands.Context):
+        """Shortcut : coc character choice"""
+        await self.character_choice(context)
 
     @commands.command()
     async def ccsi(self, context: commands.Context, unique_id: str, image_url: str):
         """Shortcut : coc character set image"""
         await self.set_image(context, unique_id, image_url)
+
+    @commands.command()
+    async def ccsc(self, context: commands.Context, unique_id: str):
+        """Shortcut : coc character set change"""
+        await self.set_change(context, unique_id)
 
     @commands.command()
     async def ccif(self, context: commands.Context, unique_id: str):
@@ -140,23 +146,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
-    @character.command(name='change', aliases=['c'])
-    async def character_change(self, context: commands.Context, unique_id: str):
-        """ アクティブなキャラクターを指定したキャラクターに切り替えます。 """
-        try:
-            result = f""
-            await context.trigger_typing()
-
-            records = await self.manager.character_change(context, unique_id)
-
-            result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
-
-    @character.command(name='choice') # aliases=['c']
+    @character.command(name='choice', aliases=['c'])
     async def character_choice(self, context: commands.Context):
         """ アクティブなキャラクターを選択したキャラクターに切り替えます。 """
         try:
@@ -180,17 +170,17 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 first_send += f"\n"
                 first_send += f"```"
                 for record in records:
-                    first_send += f"{master_emojis[index]} {record.to_display_string()}\n"
+                    first_send += f" {master_emojis[index]} {record.to_display_string()}\n"
                     used_emojis.append(master_emojis[index])
                     index += 1
                 first_send += f"```"
-                first_send += f"どの子にするの？………切り替えるキャラクターを30秒以内に選んで頂戴……。"
+                first_send += f"どの子にするの？……切り替えるキャラクターを30秒以内に選んで頂戴……。"
 
                 bot_message = await context.send(first_send)
                 for emoji in used_emojis:
                     await bot_message.add_reaction(emoji)
 
-                def check_reaction(reaction: discord.Reaction, member: discord.Member):
+                def character_choice_reaction(reaction: discord.Reaction, member: discord.Member):
                     return all([
                         member.id == context.author.id,
                         reaction.emoji in used_emojis,
@@ -200,7 +190,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 emoji = None
                 try:
                     reaction, member = await self.bot.wait_for(
-                        'reaction_character_choice', check=check_reaction, timeout=30
+                        'reaction_add', check=character_choice_reaction, timeout=30
                     )
                     emoji = reaction.emoji
                 except asyncio.TimeoutError:
@@ -208,7 +198,6 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
                 if emoji:
                     chosed_index = used_emojis.index(emoji)
-                    print(chosed_index)
                     chosed_character = records[chosed_index]
 
                     unique_id = chosed_character.unique_id
@@ -243,6 +232,38 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             records = await self.manager.set_image(context, unique_id, image_url)
 
             result += f"…ん。{records.character_name}さんの画像を登録したわ……。"
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @set.command(name='change', aliases=['c'])
+    async def set_change(self, context: commands.Context, unique_id: str):
+        """ アクティブなキャラクターを指定したキャラクターに切り替えます。 """
+        try:
+            result = f""
+            await context.trigger_typing()
+
+            records = await self.manager.character_change(context, unique_id)
+
+            result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @set.command(name='lost', aliases=['l'])
+    async def set_lost(self, context: commands.Context, unique_id: str):
+        """ 指定したキャラクターをロスト状態に設定します（戻せません）。 """
+        try:
+            result = f""
+            await context.trigger_typing()
+
+            records = await self.manager.set_lost(context, unique_id)
+
+            result += f"…あぅ。ロスト設定したわ……。{records.character_name}さんのご冥福をお祈りいたします……。"
             await context.send(result)
 
         except Exception as e:

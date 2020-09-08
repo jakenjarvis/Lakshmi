@@ -40,6 +40,7 @@ class CharactersSheetController():
         row["author_id"] = record.author_id
         row["author_name"] = record.author_name
         row["active"] = record.get_active_to_string()
+        row["lost"] = record.get_lost_to_string()
         self.pandasheet.appendRow(row)
         return self
 
@@ -54,6 +55,7 @@ class CharactersSheetController():
         row["author_id"] = record.author_id
         row["author_name"] = record.author_name
         row["active"] = record.get_active_to_string()
+        row["lost"] = record.get_lost_to_string()
         self.pandasheet.df.iloc[index] = row
         return self
 
