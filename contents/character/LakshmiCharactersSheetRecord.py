@@ -22,6 +22,7 @@ class LakshmiCharactersSheetRecord:
     author_name: str = ""           # 所有者名
 
     active: bool = False            # Active
+    lost: bool = False              # Lost
 
     def get_active_to_string(self) -> str:
         return "TRUE" if bool(self.active) else "FALSE"
@@ -32,7 +33,16 @@ class LakshmiCharactersSheetRecord:
         else:
             self.active = strtobool(str(value))
 
-    def set_values(self, unique_id, site_id1, site_id2, site_url, character_name, character_image_url, author_id, author_name, active):
+    def get_lost_to_string(self) -> str:
+        return "TRUE" if bool(self.lost) else "FALSE"
+
+    def set_lost_from_string(self, value):
+        if type(value) is bool:
+            self.lost = value
+        else:
+            self.lost = strtobool(str(value))
+
+    def set_values(self, unique_id, site_id1, site_id2, site_url, character_name, character_image_url, author_id, author_name, active, lost):
         self.unique_id = str(unique_id)
         self.site_id1 = str(site_id1)
         self.site_id2 = str(site_id2)
@@ -42,6 +52,7 @@ class LakshmiCharactersSheetRecord:
         self.author_id = str(author_id)
         self.author_name = str(author_name)
         self.set_active_from_string(active)
+        self.set_lost_from_string(lost)
         return self
 
     def set_values_by_investigator(self, target: Investigator):
@@ -54,8 +65,10 @@ class LakshmiCharactersSheetRecord:
         self.author_id = str(target.author_id)
         self.author_name = str(target.author_name)
         self.set_active_from_string(target.active)
+        self.set_lost_from_string(target.lost)
         return self
 
     def to_display_string(self):
         act = "●" if self.active else " "
-        return f"{act} {self.unique_id} : {self.character_name}"
+        lst = "💀" if self.lost else ""
+        return f"{act} {self.unique_id} : {lst}{self.character_name}"

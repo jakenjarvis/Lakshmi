@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import requests
 import json
 import re
+import aiohttp
 
 import LakshmiErrors
 from contents.character.Investigator import Investigator, SkillSet
@@ -28,23 +28,26 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
         return "https://www.google.com/s2/favicons?domain=charasheet.vampire-blood.net"
 
     @classmethod
-    def request(self, instance: Investigator, site_url: str) -> bool:
+    async def request(self, instance: Investigator, site_url: str) -> bool:
         result = False
         response = None
         data = None
         try:
             # https://charasheet.vampire-blood.net/help/webif
             request_url = site_url + ".js"
-            response = requests.get(request_url)
-            data = response.json()
+
+            async with aiohttp.ClientSession() as session:
+                async with session.get(request_url) as response:
+                    if response.status == 200:
+                        data = await response.json()
         except Exception as e:
             response = None
 
-        # COCのデータでなければ拒否する。
-        if data["game"] != "coc":
-            raise LakshmiErrors.NotCallOfCthulhuInvestigatorException()
-
         if response:
+            # COCのデータでなければ拒否する。
+            if data["game"] != "coc":
+                raise LakshmiErrors.NotCallOfCthulhuInvestigatorException()
+
             # NOTE: 基本的に上書きできない項目は触らないこと。
             #instance.unique_id = ""                              # Key
             instance.site_id1 = str(data["data_id"])                # SiteId1
@@ -55,6 +58,7 @@ class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
             #instance.author_id = ""                               # 所有者ID
             #instance.author_name = ""                             # 所有者名
             #instance.active = False                               # Active
+            #instance.lost = False                                   # Lost
             instance.tag = data["pc_tags"]                          # タグ
             #instance.image_url = ""                               # 画像URL
 
