@@ -58,7 +58,8 @@ class CharactersSheetController():
         return self
 
     def delete_character_by_index(self, index):
-        self.pandasheet.df.drop(self.pandasheet.df.index[[index]])
+        self.pandasheet.df.drop(self.pandasheet.df.index[[index]], inplace=True)
+        self.pandasheet.df.reset_index(drop=True, inplace=True)
         return self
 
     def merge_character_by_unique_id(self, record: LakshmiCharactersSheetRecord):

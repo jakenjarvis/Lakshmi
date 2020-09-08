@@ -96,6 +96,37 @@ class CharacterManager():
         record.set_values_by_investigator(result)
         self.__sheet_controller.merge_character_by_unique_id(record)
 
+        # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
+        await self.background_save()
+        return result
+
+    async def character_delete(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
+        result = LakshmiCharactersSheetRecord()
+
+        author_id = str(context.author.id)
+        author_name = str(context.author.name)
+
+        df = self.__sheet_controller.find_character_by_unique_id(author_id, unique_id)
+        if len(df) == 0:
+            # 登録がない
+            raise LakshmiErrors.CharacterNotFoundException()
+
+        result.set_values(
+            df["unique_id"].values[0],
+            df["site_id1"].values[0],
+            df["site_id2"].values[0],
+            df["site_url"].values[0],
+            df["character_name"].values[0],
+            df["character_image_url"].values[0],
+            author_id,
+            author_name,
+            df["active"].values[0],
+        )
+
+        index = int(df.index[0])
+        self.__sheet_controller.delete_character_by_index(index)
+
+        # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
         await self.background_save()
         return result
 
@@ -153,6 +184,7 @@ class CharacterManager():
         )
         self.__sheet_controller.update_character_by_index(index, result)
 
+        # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
         await self.background_save()
         return result
 
@@ -162,13 +194,14 @@ class CharacterManager():
         author_id = str(context.author.id)
         author_name = str(context.author.name)
 
+        #NOTE: find_character_by_unique_idよりも前にis_image_urlする。
+        if not await self.is_image_url(image_url):
+            raise LakshmiErrors.ImageNotFoundException()
+
         df = self.__sheet_controller.find_character_by_unique_id(author_id, unique_id)
         if len(df) == 0:
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()
-
-        if not await self.is_image_url(image_url):
-            raise LakshmiErrors.ImageNotFoundException()
 
         index = int(df.index[0])
         result.set_values(
@@ -184,6 +217,7 @@ class CharacterManager():
         )
         self.__sheet_controller.update_character_by_index(index, result)
 
+        # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
         await self.background_save()
         return result
 
@@ -200,6 +234,7 @@ class CharacterManager():
 
         # 登録済み
         site_url = str(df["site_url"].values[0])
+        #NOTE: find_character_by_unique_idの後だが、background_saveしないのでOKとする。
         if not await self.request(result, site_url):
             # TODO: delete sheet char
             raise LakshmiErrors.CharacterNotFoundException()

@@ -53,6 +53,22 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
+    @character.command(name='delete') # aliases=['del', 'd'] 危険なので省略させない。
+    async def character_delete(self, context: commands.Context, unique_id: str):
+        """ Lakshmiの登録から指定したキャラクターを削除します。 """
+        try:
+            result = f""
+            await context.trigger_typing()
+
+            character = await self.manager.character_delete(context, unique_id)
+
+            result += f"……ん。無事……{character.character_name}さんを削除……寂しいけど……さようなら……。"
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
     @character.command(name='list', aliases=['l'])
     async def character_list(self, context: commands.Context):
         """ Lakshmiに登録済みのキャラクターシートの一覧を表示します。 """
