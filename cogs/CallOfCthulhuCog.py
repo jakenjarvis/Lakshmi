@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
+import asyncio
 
-from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
 import LakshmiErrors
+from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
 from contents.character.CharacterManager import CharacterManager
 from contents.character.Investigator import Investigator
 
@@ -13,6 +14,7 @@ from contents.character.Investigator import Investigator
 # :coc character delete <キャラID> キャラ登録情報削除
 # :coc character list 登録済みキャラの一覧表示
 # :coc character change <キャラID|active> 使用中キャラの設定
+# :coc character choice 使用中キャラの設定
 # :coc character set image <キャラID|active> <画像URL> で、キャラ画像URLの登録
 # :coc character info full <キャラID|active>  キャラのステータス表示（フル）
 # :coc character info short <キャラID|active>  キャラのステータス表示（簡易）
@@ -105,8 +107,79 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
             records = await self.manager.character_change(context, unique_id)
 
-            result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。\n"
+            result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
             await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @character.command(name='choice') # aliases=['c']
+    async def character_choice(self, context: commands.Context):
+        """ アクティブなキャラクターを選択したキャラクターに切り替えます。 """
+        try:
+            # max 30
+            master_emojis = [
+                "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
+                "☮️", "✝️", "☪️", "🕉", "☸️", "✡️", "☯️", "☦️", "♈️", "♉️",
+                "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"
+                ]
+            used_emojis = []
+
+            author_name = str(context.author.name)
+            display_name = str(context.author.display_name)
+
+            records = await self.manager.character_list(context)
+            if len(records) >= 1:
+                index = 0
+
+                first_send = f""
+                first_send += f"…ん。あなたの登録キャラクターは次の{len(records)}人よ……。"
+                first_send += f"\n"
+                first_send += f"```"
+                for record in records:
+                    first_send += f"{master_emojis[index]} {record.to_display_string()}\n"
+                    used_emojis.append(master_emojis[index])
+                    index += 1
+                first_send += f"```"
+                first_send += f"どの子にするの？………切り替えるキャラクターを30秒以内に選んで頂戴……。"
+
+                bot_message = await context.send(first_send)
+                for emoji in used_emojis:
+                    await bot_message.add_reaction(emoji)
+
+                def check_reaction(reaction: discord.Reaction, member: discord.Member):
+                    return all([
+                        member.id == context.author.id,
+                        reaction.emoji in used_emojis,
+                        reaction.message.id == bot_message.id
+                    ])
+
+                emoji = None
+                try:
+                    reaction, member = await self.bot.wait_for(
+                        'reaction_character_choice', check=check_reaction, timeout=30
+                    )
+                    emoji = reaction.emoji
+                except asyncio.TimeoutError:
+                    emoji = None
+
+                if emoji:
+                    chosed_index = used_emojis.index(emoji)
+                    print(chosed_index)
+                    chosed_character = records[chosed_index]
+
+                    unique_id = chosed_character.unique_id
+                    records = await self.manager.character_change(context, unique_id)
+
+                    result = f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
+                    await context.send(result)
+                else:
+                    result = f'時間切れよ………{context.author.display_name}さんは優柔不断ね……。'
+                    await context.send(result)
+            else:
+                result = f"あ……。あなたの登録キャラクターが見つからないわ………。"
+                await context.send(result)
 
         except Exception as e:
             # エラー検知時通知
@@ -127,7 +200,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
             records = await self.manager.set_image(context, unique_id, image_url)
 
-            result += f"…ん。{records.character_name}さんの画像を登録したわ……。\n"
+            result += f"…ん。{records.character_name}さんの画像を登録したわ……。"
             await context.send(result)
 
         except Exception as e:
