@@ -26,6 +26,48 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         #self.bot.storage
         self.manager = CharacterManager(self.bot)
 
+    # --------------------------------------------------
+    # ショートカットコマンド
+    # --------------------------------------------------
+    @commands.command()
+    async def cca(self, context: commands.Context, url: str):
+        """Shortcut : coc character add"""
+        await self.character_add(context, url)
+
+    @commands.command()
+    async def ccl(self, context: commands.Context):
+        """Shortcut : coc character list"""
+        await self.character_list(context)
+
+    @commands.command()
+    async def ccc(self, context: commands.Context, unique_id: str):
+        """Shortcut : coc character change"""
+        await self.character_change(context, unique_id)
+
+    @commands.command()
+    async def ccsi(self, context: commands.Context, unique_id: str, image_url: str):
+        """Shortcut : coc character set image"""
+        await self.set_image(context, unique_id, image_url)
+
+    @commands.command()
+    async def ccif(self, context: commands.Context, unique_id: str):
+        """Shortcut : coc character info full"""
+        await self.info_full(context, unique_id)
+
+    @commands.command()
+    async def ccis(self, context: commands.Context, unique_id: str):
+        """Shortcut : coc character info short"""
+        await self.info_short(context, unique_id)
+
+    @commands.command()
+    async def ccib(self, context: commands.Context, unique_id: str):
+        """Shortcut : coc character info backstory"""
+        await self.info_backstory(context, unique_id)
+
+    # --------------------------------------------------
+    # 通常コマンド
+    # --------------------------------------------------
+
     @commands.group(aliases=['c'])
     async def coc(self, context: commands.Context):
         """詳細は :help coc で確認してください。"""
