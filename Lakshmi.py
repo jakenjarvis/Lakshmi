@@ -12,7 +12,7 @@ import LakshmiErrors
 
 from contents.LakshmiBrainStorage import LakshmiBrainStorage
 
-bot = MultilineBot(command_prefix=':', help_command=LakshmiHelpCommand())
+bot = MultilineBot(command_prefix=';', help_command=LakshmiHelpCommand())
 bot.storage = LakshmiBrainStorage(bot)
 
 extensions = [

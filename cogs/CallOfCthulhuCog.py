@@ -37,13 +37,13 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
     @commands.group(aliases=['c'])
     async def coc(self, context: commands.Context):
-        """詳細は :help coc で確認してください。"""
+        """詳細は ;help coc で確認してください。"""
         if context.invoked_subcommand is None:
             raise LakshmiErrors.SubcommandNotFoundException()
 
     @coc.group(aliases=['char','c'])
     async def character(self, context: commands.Context):
-        """詳細は :help coc character で確認してください。"""
+        """詳細は ;help coc character で確認してください。"""
         if context.invoked_subcommand is None:
             raise LakshmiErrors.SubcommandNotFoundException()
 
@@ -179,7 +179,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
     @character.group(aliases=['s'])
     async def set(self, context: commands.Context):
-        """詳細は :help coc character set で確認してください。"""
+        """詳細は ;help coc character set で確認してください。"""
         if context.invoked_subcommand is None:
             raise LakshmiErrors.SubcommandNotFoundException()
 
@@ -233,7 +233,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
     @character.group(aliases=['i'])
     async def info(self, context: commands.Context):
-        """詳細は :help coc character info で確認してください。"""
+        """詳細は ;help coc character info で確認してください。"""
         if context.invoked_subcommand is None:
             raise LakshmiErrors.SubcommandNotFoundException()
 
