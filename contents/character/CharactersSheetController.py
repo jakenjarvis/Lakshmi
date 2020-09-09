@@ -7,8 +7,7 @@ import ulid
 
 from contents.character.LakshmiCharactersSheet import LakshmiCharactersSheet
 from contents.character.LakshmiCharactersSheetRecord import LakshmiCharactersSheetRecord
-from LakshmiEnvironmentVariables import LakshmiEnvironmentVariables
-from common.GoogleCredentialsManager import GoogleCredentialsManager
+from contents.character.Investigator import Investigator
 
 class CharactersSheetController():
     def __init__(self, pandasheet: LakshmiCharactersSheet):
@@ -27,6 +26,45 @@ class CharactersSheetController():
 
     def save(self):
         self.pandasheet.save()
+        return self
+
+    def set_investigator_by_record(self, target: Investigator, record: LakshmiCharactersSheetRecord, overwrite=False):
+        target.unique_id = str(record.unique_id)
+        target.site_id1 = str(record.site_id1) if overwrite else target.site_id1
+        target.site_id2 = str(record.site_id2) if overwrite else target.site_id2
+        target.site_url = str(record.site_url) if overwrite else target.site_url
+        target.personal_data.name = str(record.character_name) if overwrite else target.personal_data.name
+        target.image_url = str(record.character_image_url)
+        target.author_id = str(record.author_id)
+        target.author_name = str(record.author_name)
+        target.active = bool(record.active)
+        target.lost = bool(record.lost)
+        return self
+
+    def set_investigator_by_dataframe(self, target: Investigator, df: pd.DataFrame, overwrite=False):
+        target.unique_id = str(df["unique_id"].values[0])
+        target.site_id1 = str(df["site_id1"].values[0]) if overwrite else target.site_id1
+        target.site_id2 = str(df["site_id2"].values[0]) if overwrite else target.site_id2
+        target.site_url = str(df["site_url"].values[0]) if overwrite else target.site_url
+        target.personal_data.name = str(df["character_name"].values[0]) if overwrite else target.personal_data.name
+        target.image_url = str(df["character_image_url"].values[0])
+        target.author_id = str(df["author_id"].values[0])
+        target.author_name = str(df["author_name"].values[0])
+        target.active = strtobool(str(df["active"].values[0]))
+        target.lost = strtobool(str(df["lost"].values[0]))
+        return self
+
+    def set_investigator_by_series(self, target: Investigator, row: pd.Series, overwrite=False):
+        target.unique_id = str(row["unique_id"])
+        target.site_id1 = str(row["site_id1"]) if overwrite else target.site_id1
+        target.site_id2 = str(row["site_id2"]) if overwrite else target.site_id2
+        target.site_url = str(row["site_url"]) if overwrite else target.site_url
+        target.personal_data.name = str(row["character_name"]) if overwrite else target.personal_data.name
+        target.image_url = str(row["character_image_url"])
+        target.author_id = str(row["author_id"])
+        target.author_name = str(row["author_name"])
+        target.active = strtobool(str(row["active"]))
+        target.lost = strtobool(str(row["lost"]))
         return self
 
     def insert_character(self, record: LakshmiCharactersSheetRecord):

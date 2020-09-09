@@ -8,6 +8,8 @@ import datetime
 
 from typing import Union
 
+import asyncio
+
 import nagisa
 
 import discord
@@ -22,7 +24,7 @@ class GreetingCog(commands.Cog, name='挨拶系'):
     async def nagisa(self, context: commands.Context, *, message: str):
         """指定した文章を形態素解析します。"""
         try:
-            character_message = self.bot.storage.get_character_message_for_command_nagisa()
+            character_message = self.bot.storage.lexicon.get_character_message_for_command_nagisa()
             result = f"{character_message}\n"
 
             await context.trigger_typing()
@@ -43,7 +45,7 @@ class GreetingCog(commands.Cog, name='挨拶系'):
     async def hello(self, context: commands.Context):
         """簡単な応答を返します。(Lakshmiの生存確認用)"""
         try:
-            character_message = self.bot.storage.get_character_message_for_command_hello()
+            character_message = self.bot.storage.lexicon.get_character_message_for_command_hello()
             await context.send(character_message)
 
         except Exception as e:
@@ -55,12 +57,14 @@ class GreetingCog(commands.Cog, name='挨拶系'):
         if message.author != self.bot.user:
             # メンションで話しかけられた
             if self.bot.user in message.mentions:
-                character_message = self.bot.storage.get_character_message_when_talked_to_by_mention()
+                character_message = self.bot.storage.lexicon.get_character_message_when_talked_to_by_mention()
                 await message.channel.send(f'{message.author.mention} {character_message}')
 
             # 挨拶メッセージを見つけた
-            if self.bot.storage.is_say_hello(message):
-                character_message = self.bot.storage.get_character_message_for_greeting_text(message)
+            if self.bot.storage.lexicon.is_say_hello(message):
+                await message.channel.trigger_typing()
+                await asyncio.sleep(4) # わざとちょっと遅れて反応する
+                character_message = self.bot.storage.lexicon.get_character_message_for_greeting_text(message)
                 await message.channel.send(f'{character_message}')
 
     @commands.Cog.listener()

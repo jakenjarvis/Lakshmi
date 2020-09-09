@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 from typing import List, Dict
 from distutils.util import strtobool
+import copy
 import aiohttp
 import asyncio
+import datetime
+import pytz
 
 import discord
 from discord.ext import commands
@@ -20,6 +23,7 @@ class CharacterManager():
         self.bot = bot
         #self.bot.storage
         self.__sheet_controller: CharactersSheetController = self.bot.storage.sheet_controller
+        self.__investigators: Dict[str, Investigator] = self.bot.storage.investigators
 
         # 対応サイトの追加
         self.instances: List[AbstractCharacterGetter] = []
@@ -27,7 +31,7 @@ class CharacterManager():
 
         self.save_flag = False
 
-    def get_getter_instance(self, site_url: str) -> AbstractCharacterGetter:
+    def __get_instance_of_getter(self, site_url: str) -> AbstractCharacterGetter:
         result = None
         for instance in self.instances:
             if instance.is_detect_url(site_url):
@@ -35,11 +39,33 @@ class CharacterManager():
                 break
         return result
 
-    async def request(self, instance: Investigator, site_url: str) -> bool:
-        target_instance = self.get_getter_instance(site_url)
-        if not target_instance:
-            raise LakshmiErrors.UnsupportedSitesException()
-        return await target_instance.request(instance, site_url)
+    async def register_investigator_in_cache(self, investigator: Investigator):
+        self.__investigators[investigator.site_url] = investigator
+
+    async def request(self, site_url: str) -> Investigator:
+        result = None
+        cache_investigator: Investigator = None
+        is_cache = False
+
+        if site_url in self.__investigators:
+            # キャッシュに存在する
+            cache_investigator = self.__investigators[site_url]
+            if self.bot.storage.lexicon.get_jst_datetime_now() <= cache_investigator.created_at + datetime.timedelta(minutes=5):
+                is_cache = True
+
+        if is_cache:
+            # キャッシュを返却
+            result = copy.deepcopy(cache_investigator)
+        else:
+            # サイト取得
+            getter = self.__get_instance_of_getter(site_url)
+            if not getter:
+                raise LakshmiErrors.UnsupportedSitesException()
+
+            result = Investigator()
+            if not await getter.request(result, site_url):
+                raise LakshmiErrors.CharacterNotFoundException()
+        return result
 
     async def background_save(self):
         if not self.save_flag:
@@ -63,11 +89,8 @@ class CharacterManager():
             result = False
         return result
 
-    async def character_add(self, context: commands.Context, url: str) -> Investigator:
-        result = Investigator()
-
-        if not await self.request(result, url):
-            raise LakshmiErrors.haracterNotFoundException()
+    async def add_character(self, context: commands.Context, url: str) -> Investigator:
+        result = await self.request(url)
 
         author_id = str(context.author.id)
         author_name = str(context.author.name)
@@ -106,10 +129,11 @@ class CharacterManager():
         self.__sheet_controller.merge_character_by_unique_id(record)
 
         # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
+        await self.register_investigator_in_cache(result)
         await self.background_save()
         return result
 
-    async def character_delete(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
+    async def delete_character(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
         result = LakshmiCharactersSheetRecord()
 
         author_id = str(context.author.id)
@@ -120,18 +144,9 @@ class CharacterManager():
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()
 
-        result.set_values(
-            df["unique_id"].values[0],
-            df["site_id1"].values[0],
-            df["site_id2"].values[0],
-            df["site_url"].values[0],
-            df["character_name"].values[0],
-            df["character_image_url"].values[0],
-            author_id,
-            author_name,
-            df["active"].values[0],
-            df["lost"].values[0],
-        )
+        result.set_values_by_dataframe(df)
+        result.author_id = author_id
+        result.author_name = author_name
 
         index = int(df.index[0])
         self.__sheet_controller.delete_character_by_index(index)
@@ -140,7 +155,7 @@ class CharacterManager():
         await self.background_save()
         return result
 
-    async def character_list(self, context: commands.Context) -> List[LakshmiCharactersSheetRecord]:
+    async def get_character_list(self, context: commands.Context) -> List[LakshmiCharactersSheetRecord]:
         result = []
 
         author_id = str(context.author.id)
@@ -153,22 +168,13 @@ class CharacterManager():
             # 1件以上あり
             for index, row in df.iterrows():
                 record = LakshmiCharactersSheetRecord()
-                record.set_values(
-                    row["unique_id"],
-                    row["site_id1"],
-                    row["site_id2"],
-                    row["site_url"],
-                    row["character_name"],
-                    row["character_image_url"],
-                    author_id,
-                    author_name,
-                    row["active"],
-                    row["lost"],
-                )
+                record.set_values_by_series(row)
+                record.author_id = author_id
+                record.author_name = author_name
                 result.append(record)
         return result
 
-    async def character_change(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
+    async def set_character_active(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
         result = LakshmiCharactersSheetRecord()
 
         author_id = str(context.author.id)
@@ -179,28 +185,21 @@ class CharacterManager():
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()
 
+        result.set_values_by_dataframe(df)
+        result.author_id = author_id
+        result.author_name = author_name
+        result.active = True
+
         self.__sheet_controller.set_inactive_all_character_by_author_id(author_id)
 
         index = int(df.index[0])
-        result.set_values(
-            df["unique_id"].values[0],
-            df["site_id1"].values[0],
-            df["site_id2"].values[0],
-            df["site_url"].values[0],
-            df["character_name"].values[0],
-            df["character_image_url"].values[0],
-            author_id,
-            author_name,
-            True,
-            df["lost"].values[0],
-        )
         self.__sheet_controller.update_character_by_index(index, result)
 
         # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
         await self.background_save()
         return result
 
-    async def set_image(self, context: commands.Context, unique_id: str, image_url: str) -> LakshmiCharactersSheetRecord:
+    async def set_character_image(self, context: commands.Context, unique_id: str, image_url: str) -> LakshmiCharactersSheetRecord:
         result = LakshmiCharactersSheetRecord()
 
         author_id = str(context.author.id)
@@ -215,26 +214,19 @@ class CharacterManager():
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()
 
+        result.set_values_by_dataframe(df)
+        result.character_image_url = image_url
+        result.author_id = author_id
+        result.author_name = author_name
+
         index = int(df.index[0])
-        result.set_values(
-            df["unique_id"].values[0],
-            df["site_id1"].values[0],
-            df["site_id2"].values[0],
-            df["site_url"].values[0],
-            df["character_name"].values[0],
-            image_url,
-            author_id,
-            author_name,
-            df["active"].values[0],
-            df["lost"].values[0],
-        )
         self.__sheet_controller.update_character_by_index(index, result)
 
         # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
         await self.background_save()
         return result
 
-    async def set_lost(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
+    async def set_character_lost(self, context: commands.Context, unique_id: str) -> LakshmiCharactersSheetRecord:
         result = LakshmiCharactersSheetRecord()
 
         author_id = str(context.author.id)
@@ -245,28 +237,19 @@ class CharacterManager():
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()
 
+        result.set_values_by_dataframe(df)
+        result.author_id = author_id
+        result.author_name = author_name
+        result.lost = True
+
         index = int(df.index[0])
-        result.set_values(
-            df["unique_id"].values[0],
-            df["site_id1"].values[0],
-            df["site_id2"].values[0],
-            df["site_url"].values[0],
-            df["character_name"].values[0],
-            df["character_image_url"].values[0],
-            author_id,
-            author_name,
-            df["active"].values[0],
-            True,
-        )
         self.__sheet_controller.update_character_by_index(index, result)
 
         # NOTE: self.__sheet_controllerのfind等からsaveまでの間にawait処理が入らないように注意。
         await self.background_save()
         return result
 
-    async def info_information(self, context: commands.Context, unique_id: str) -> Investigator:
-        result = Investigator()
-
+    async def get_character_information(self, context: commands.Context, unique_id: str) -> Investigator:
         author_id = str(context.author.id)
         author_name = str(context.author.name)
 
@@ -277,36 +260,13 @@ class CharacterManager():
 
         # 登録済み
         record = LakshmiCharactersSheetRecord()
-        record.set_values(
-            df["unique_id"].values[0],
-            df["site_id1"].values[0],
-            df["site_id2"].values[0],
-            df["site_url"].values[0],
-            df["character_name"].values[0],
-            df["character_image_url"].values[0],
-            author_id,
-            author_name,
-            df["active"].values[0],
-            df["lost"].values[0],
-        )
-        self.set_investigator_by_record(result, record)
+        record.set_values_by_dataframe(df)
+        record.author_id = author_id
+        record.author_name = author_name
 
         #NOTE: find_character_by_unique_idの後だが、background_saveしないのでOKとする。
-        if not await self.request(result, record.site_url):
-            # TODO: delete sheet char
-            raise LakshmiErrors.CharacterNotFoundException()
+        result = await self.request(record.site_url)
+        self.__sheet_controller.set_investigator_by_record(result, record)
 
+        await self.register_investigator_in_cache(result)
         return result
-
-    def set_investigator_by_record(self, target: Investigator, record: LakshmiCharactersSheetRecord):
-        target.unique_id = str(record.unique_id)
-        target.site_id1 = str(record.site_id1)
-        target.site_id2 = str(record.site_id2)
-        target.site_url = str(record.site_url)
-        target.personal_data.name = str(record.character_name)
-        target.image_url = str(record.character_image_url)
-        target.author_id = str(record.author_id)
-        target.author_name = str(record.author_name)
-        target.active = bool(record.active)
-        target.lost = bool(record.lost)
-        return self
