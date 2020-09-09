@@ -13,7 +13,7 @@ class GamesCog(commands.Cog, name='ゲーム系'):
 
     @commands.group()
     async def game(self, context: commands.Context):
-        """詳細は :help game で確認してください。"""
+        """詳細は ;help game で確認してください。"""
         if context.invoked_subcommand is None:
             raise LakshmiErrors.SubcommandNotFoundException()
 
