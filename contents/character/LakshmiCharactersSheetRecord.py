@@ -4,6 +4,8 @@ from typing import List, Dict
 from dataclasses import dataclass, fields, field
 from distutils.util import strtobool
 
+import pandas as pd
+
 from contents.character.Investigator import Investigator
 
 @dataclass
@@ -56,17 +58,46 @@ class LakshmiCharactersSheetRecord:
         return self
 
     def set_values_by_investigator(self, target: Investigator):
-        self.unique_id = str(target.unique_id)
-        self.site_id1 = str(target.site_id1)
-        self.site_id2 = str(target.site_id2)
-        self.site_url = str(target.site_url)
-        self.character_name = str(target.character_name)
-        self.character_image_url = str(target.character_image_url)
-        self.author_id = str(target.author_id)
-        self.author_name = str(target.author_name)
-        self.set_active_from_string(target.active)
-        self.set_lost_from_string(target.lost)
-        return self
+        return self.set_values(
+            target.unique_id,
+            target.site_id1,
+            target.site_id2,
+            target.site_url,
+            target.character_name,
+            target.character_image_url,
+            target.author_id,
+            target.author_name,
+            target.active,
+            target.lost,
+        )
+
+    def set_values_by_dataframe(self, df: pd.DataFrame):
+        return self.set_values(
+            df["unique_id"].values[0],
+            df["site_id1"].values[0],
+            df["site_id2"].values[0],
+            df["site_url"].values[0],
+            df["character_name"].values[0],
+            df["character_image_url"].values[0],
+            df["author_id"].values[0],
+            df["author_name"].values[0],
+            df["active"].values[0],
+            df["lost"].values[0],
+        )
+
+    def set_values_by_series(self, row: pd.Series):
+        return self.set_values(
+            row["unique_id"],
+            row["site_id1"],
+            row["site_id2"],
+            row["site_url"],
+            row["character_name"],
+            row["character_image_url"],
+            row["author_id"],
+            row["author_name"],
+            row["active"],
+            row["lost"],
+        )
 
     def to_display_string(self):
         act = "●" if self.active else " "

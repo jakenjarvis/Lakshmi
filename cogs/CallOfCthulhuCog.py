@@ -21,58 +21,19 @@ from contents.character.Investigator import Investigator
 # :coc character info short <キャラID|active>  キャラのステータス表示（簡易）
 # :coc character info backstory <キャラID|active>  キャラのステータス表示（キャラ紹介）
 
+# 技能名ダイス、技能検索、技能選択ダイス
+
+# 〇;sp にするとか（pと区別するため)
+# spではSANC + アイデア + 知識 + 幸運 + ポイントを振っている技能 を一覧表示させて、リアクションでダイスを降らせる
+# pではそれ以外の技能ダイスを振っていただく...とか?
+# 〇ｐで数値と文字列両方受け付けて、数値だったらパーセント、文字列だったら技能名から検索して該当するやつでダイス・・・みたいな？
+
+
 class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     def __init__(self, bot):
         self.bot = bot
         #self.bot.storage
         self.manager = CharacterManager(self.bot)
-
-    # --------------------------------------------------
-    # ショートカットコマンド
-    # --------------------------------------------------
-    @commands.command()
-    async def cca(self, context: commands.Context, url: str):
-        """Shortcut : coc character add"""
-        await self.character_add(context, url)
-
-    @commands.command()
-    async def ccl(self, context: commands.Context):
-        """Shortcut : coc character list"""
-        await self.character_list(context)
-
-    @commands.command()
-    async def ccc(self, context: commands.Context):
-        """Shortcut : coc character choice"""
-        await self.character_choice(context)
-
-    @commands.command()
-    async def ccsi(self, context: commands.Context, unique_id: str, image_url: str):
-        """Shortcut : coc character set image"""
-        await self.set_image(context, unique_id, image_url)
-
-    @commands.command()
-    async def ccsc(self, context: commands.Context, unique_id: str):
-        """Shortcut : coc character set change"""
-        await self.set_change(context, unique_id)
-
-    @commands.command()
-    async def ccif(self, context: commands.Context, unique_id: str):
-        """Shortcut : coc character info full"""
-        await self.info_full(context, unique_id)
-
-    @commands.command()
-    async def ccis(self, context: commands.Context, unique_id: str):
-        """Shortcut : coc character info short"""
-        await self.info_short(context, unique_id)
-
-    @commands.command()
-    async def ccib(self, context: commands.Context, unique_id: str):
-        """Shortcut : coc character info backstory"""
-        await self.info_backstory(context, unique_id)
-
-    # --------------------------------------------------
-    # 通常コマンド
-    # --------------------------------------------------
 
     @commands.group(aliases=['c'])
     async def coc(self, context: commands.Context):
@@ -93,7 +54,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             result = f""
             await context.trigger_typing()
 
-            character = await self.manager.character_add(context, url)
+            character = await self.manager.add_character(context, url)
 
             result += f"…ふぅ。無事……{character.character_name}さんを登録したわ……。\n"
             result += f"Idは {character.unique_id} よ…。"
@@ -110,7 +71,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             result = f""
             await context.trigger_typing()
 
-            character = await self.manager.character_delete(context, unique_id)
+            character = await self.manager.delete_character(context, unique_id)
 
             result += f"……ん。無事……{character.character_name}さんを削除……寂しいけど……さようなら……。"
             await context.send(result)
@@ -129,7 +90,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             author_name = str(context.author.name)
             display_name = str(context.author.display_name)
 
-            records = await self.manager.character_list(context)
+            records = await self.manager.get_character_list(context)
             if len(records) >= 1:
                 result += f"…ん。あなたの登録キャラクターは次の{len(records)}人よ……。"
                 result += f"\n"
@@ -161,7 +122,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             author_name = str(context.author.name)
             display_name = str(context.author.display_name)
 
-            records = await self.manager.character_list(context)
+            records = await self.manager.get_character_list(context)
             if len(records) >= 1:
                 index = 0
 
@@ -201,7 +162,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                     chosed_character = records[chosed_index]
 
                     unique_id = chosed_character.unique_id
-                    records = await self.manager.character_change(context, unique_id)
+                    records = await self.manager.set_character_active(context, unique_id)
 
                     result = f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
                     await context.send(result)
@@ -229,7 +190,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             result = f""
             await context.trigger_typing()
 
-            records = await self.manager.set_image(context, unique_id, image_url)
+            records = await self.manager.set_character_image(context, unique_id, image_url)
 
             result += f"…ん。{records.character_name}さんの画像を登録したわ……。"
             await context.send(result)
@@ -245,7 +206,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             result = f""
             await context.trigger_typing()
 
-            records = await self.manager.character_change(context, unique_id)
+            records = await self.manager.set_character_active(context, unique_id)
 
             result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
             await context.send(result)
@@ -261,7 +222,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             result = f""
             await context.trigger_typing()
 
-            records = await self.manager.set_lost(context, unique_id)
+            records = await self.manager.set_character_lost(context, unique_id)
 
             result += f"…あぅ。ロスト設定したわ……。{records.character_name}さんのご冥福をお祈りいたします……。"
             await context.send(result)
@@ -282,7 +243,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         try:
             await context.trigger_typing()
 
-            character = await self.manager.info_information(context, unique_id)
+            character = await self.manager.get_character_information(context, unique_id)
 
             embed = InvestigatorEmbedCreator.create_full_status(character)
 
@@ -305,7 +266,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         try:
             await context.trigger_typing()
 
-            character = await self.manager.info_information(context, unique_id)
+            character = await self.manager.get_character_information(context, unique_id)
 
             embed = InvestigatorEmbedCreator.create_short_status(character)
 
@@ -328,7 +289,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         try:
             await context.trigger_typing()
 
-            character = await self.manager.info_information(context, unique_id)
+            character = await self.manager.get_character_information(context, unique_id)
 
             embed = InvestigatorEmbedCreator.create_backstory_status(character)
 

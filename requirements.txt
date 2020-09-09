@@ -9,5 +9,6 @@ numpy
 gspread
 gspread_pandas
 ulid-py
+pyxDamerauLevenshtein
 nagisa
 gensim

@@ -3,6 +3,9 @@
 from typing import List, Dict
 from dataclasses import dataclass, fields, field
 
+import datetime
+import pytz
+
 # パーソナルデータ
 @dataclass
 class PersonalData:
@@ -219,6 +222,9 @@ class Investigator:
 
     # パーソナルデータ
     personal_data: PersonalData = field(default_factory=PersonalData)
+    # 最終更新日時
+    created_at: datetime = field(default_factory=lambda: datetime.datetime.now(pytz.timezone('Asia/Tokyo')), init=False)
+
 
     # 名前
     @property
