@@ -106,10 +106,15 @@ class CharacterManager():
         df = self.__sheet_controller.find_character_by_site_info(author_id, result.site_id1, result.site_id2, result.site_url)
         if len(df) == 0:
             # 新規
+            # activeの設定初期値の決定
+            author_df = self.__sheet_controller.find_characters_by_author_id(author_id)
+            # 初めての登録キャラの場合はTrueとする。
+            value_active = False if len(author_df) >= 1 else True
+
             result.unique_id = self.__sheet_controller.assign_unique_id(result.site_id1, result.site_id2, result.site_url)
             result.author_id = author_id
             result.author_name = author_name
-            result.active = False
+            result.active = value_active
             result.lost = False
             result.image_url = image_url
         else:
@@ -249,11 +254,15 @@ class CharacterManager():
         await self.background_save()
         return result
 
-    async def get_character_information(self, context: commands.Context, unique_id: str) -> Investigator:
+    async def get_character_information(self, context: commands.Context, unique_id: str = "") -> Investigator:
         author_id = str(context.author.id)
         author_name = str(context.author.name)
 
-        df = self.__sheet_controller.find_character_by_unique_id(author_id, unique_id)
+        if len(unique_id) >= 1:
+            df = self.__sheet_controller.find_character_by_unique_id(author_id, unique_id)
+        else:
+            df = self.__sheet_controller.find_active_character_by_author_id(author_id)
+
         if len(df) == 0:
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()

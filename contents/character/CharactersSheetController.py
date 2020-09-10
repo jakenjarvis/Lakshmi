@@ -151,6 +151,12 @@ class CharactersSheetController():
     def find_characters_by_author_id(self, author_id: str) -> pd.DataFrame:
         return self.pandasheet.df[self.pandasheet.df["author_id"].isin([author_id])]
 
+    def find_active_character_by_author_id(self, author_id: str) -> pd.DataFrame:
+        return self.pandasheet.df[
+            (self.pandasheet.df["author_id"] == author_id) & (self.pandasheet.df["active"] == "TRUE")
+        ]
+
+
 class FuzzyWhere():
     def __init__(self, df):
         self.df = df

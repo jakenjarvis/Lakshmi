@@ -9,17 +9,23 @@ from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
 from contents.character.CharacterManager import CharacterManager
 from contents.character.Investigator import Investigator
 
-# TODO:
 # :coc character add <URL> キャラ登録でスプレッドシート記録
-# :coc character delete <キャラID> キャラ登録情報削除
+# :coc character delete <キャラID> キャラIDを指定してキャラ登録情報削除
 # :coc character list 登録済みキャラの一覧表示
-# :coc character choice 使用中キャラの設定
-# :coc character set image <キャラID|active> <画像URL> で、キャラ画像URLの登録
-# :coc character set change <キャラID|active> 使用中キャラの設定
-# :coc character set lost <キャラID|active> キャラのロスト設定
-# :coc character info full <キャラID|active>  キャラのステータス表示（フル）
-# :coc character info short <キャラID|active>  キャラのステータス表示（簡易）
-# :coc character info backstory <キャラID|active>  キャラのステータス表示（キャラ紹介）
+# :coc character choice リストから選択して使用中設定
+# :coc character set image <キャラID> <画像URL> キャラIDを指定して画像URL登録
+# :coc character set change <キャラID> キャラIDを指定して使用中設定
+# :coc character set lost <キャラID> キャラIDを指定してロスト設定
+# :coc character info full <キャラID|active> 指定キャラのステータス表示（フル）
+# :coc character info short <キャラID|active> 指定キャラのステータス表示（簡易）
+# :coc character info backstory <キャラID|active> 指定キャラのステータス表示（キャラ紹介）
+
+# TODO:
+# :coc skill list スキル名で指定できるスキルリストの表示
+# :coc character get skill <検索文字> 使用中キャラのスキルリスト表示
+
+# :coc character query skill <query> 条件付き情報表示
+
 
 # 技能名ダイス、技能検索、技能選択ダイス
 
@@ -238,7 +244,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             raise LakshmiErrors.SubcommandNotFoundException()
 
     @info.command(name='full', aliases=['f'])
-    async def info_full(self, context: commands.Context, unique_id: str):
+    async def info_full(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（Full）を表示します。 """
         try:
             await context.trigger_typing()
@@ -261,7 +267,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             await self.bot.on_command_error(context, e)
 
     @info.command(name='short', aliases=['s'])
-    async def info_short(self, context: commands.Context, unique_id: str):
+    async def info_short(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（short）を表示します。 """
         try:
             await context.trigger_typing()
@@ -284,7 +290,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             await self.bot.on_command_error(context, e)
 
     @info.command(name='backstory', aliases=['back', 'story', 'bs', 'b'])
-    async def info_backstory(self, context: commands.Context, unique_id: str):
+    async def info_backstory(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（backstory）を表示します。 """
         try:
             await context.trigger_typing()
