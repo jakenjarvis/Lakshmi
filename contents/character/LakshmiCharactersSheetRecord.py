@@ -101,5 +101,6 @@ class LakshmiCharactersSheetRecord:
 
     def to_display_string(self):
         act = "●" if self.active else " "
+        img = "🎨" if len(self.character_image_url) >= 1 else ""
         lst = "💀" if self.lost else ""
-        return f"{act} {self.unique_id} : {lst}{self.character_name}"
+        return f"{act} {self.unique_id}: {lst}{self.character_name}{img}"

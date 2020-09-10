@@ -39,6 +39,11 @@ class ShortcutCallOfCthulhuCog(commands.Cog, name='CoC-TRPG系Shortcut'):
         await self.coccog.character_list(context)
 
     @commands.command()
+    async def ccu(self, context: commands.Context):
+        """Shortcut: ;coc character urls"""
+        await self.coccog.character_urls(context)
+
+    @commands.command()
     async def ccc(self, context: commands.Context):
         """Shortcut: ;coc character choice"""
         await self.coccog.character_choice(context)

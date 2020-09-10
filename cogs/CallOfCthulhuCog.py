@@ -10,20 +10,29 @@ from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
 from contents.character.CharacterManager import CharacterManager
 from contents.character.Investigator import Investigator
 
-# :coc character add <URL> キャラ登録でスプレッドシート記録
-# :coc character delete <キャラID> キャラIDを指定してキャラ登録情報削除
-# :coc character list 登録済みキャラの一覧表示
-# :coc character choice リストから選択して使用中設定
-# :coc character set image <キャラID> <画像URL> キャラIDを指定して画像URL登録
-# :coc character set change <キャラID> キャラIDを指定して使用中設定
-# :coc character set lost <キャラID> キャラIDを指定してロスト設定
-# :coc character info full <キャラID|active> 指定キャラのステータス表示（フル）
-# :coc character info short <キャラID|active> 指定キャラのステータス表示（簡易）
-# :coc character info backstory <キャラID|active> 指定キャラのステータス表示（キャラ紹介）
+# ;coc character add <URL> サイトのURL指定でキャラ登録
+# ;coc character delete <キャラID> キャラIDを指定してキャラ登録情報削除
+# ;coc character list 登録済みキャラの一覧表示
+# ;coc character choice リストから選択して使用中設定
+# ;coc character set image <キャラID> <画像URL> キャラIDを指定して画像URL登録
+# ;coc character set change <キャラID> キャラIDを指定して使用中設定
+# ;coc character set lost <キャラID> キャラIDを指定してロスト設定
+# ;coc character info full <キャラID|active> 指定キャラのステータス表示（フル）
+# ;coc character info short <キャラID|active> 指定キャラのステータス表示（簡易）
+# ;coc character info backstory <キャラID|active> 指定キャラのステータス表示（キャラ紹介）
 
 # TODO:
+# ;coc character urls 登録済みキャラの一覧表示（リンク付き）
+
 # :coc skill list スキル名で指定できるスキルリストの表示
 # :coc character get skill <検索文字> 使用中キャラのスキルリスト表示
+# :coc character get skill ability
+# :coc character get skill combat
+# :coc character get skill search
+# :coc character get skill behavioral
+# :coc character get skill negotiation
+# :coc character get skill knowledge
+# :coc character find <検索文字> キャラの検索
 
 # :coc character query skill <query> 条件付き情報表示
 
@@ -64,7 +73,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             character = await self.manager.add_character(context, url)
 
             result += f"…ふぅ。無事……{character.character_name}さんを登録したわ……。\n"
-            result += f"Idは {character.unique_id} よ…。"
+            result += f"Idは `{character.unique_id}` よ…。"
             await context.send(result)
 
         except Exception as e:
@@ -99,12 +108,40 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
             records = await self.manager.get_character_list(context)
             if len(records) >= 1:
-                result += f"…ん。あなたの登録キャラクターは次の{len(records)}人よ……。"
+                result += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
                 result += f"\n"
                 result += f"```"
                 for record in records:
                     result += f"{record.to_display_string()}\n"
                 result += f"```"
+            else:
+                result += f"あ……。あなたの登録キャラクターが見つからないわ………。"
+
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
+    @character.command(name='urls', aliases=['u'])
+    async def character_urls(self, context: commands.Context):
+        """ Lakshmiに登録済みのキャラクターシートの一覧（リンク付き）を表示します。 """
+        try:
+            result = f""
+            await context.trigger_typing()
+
+            author_name = str(context.author.name)
+            display_name = str(context.author.display_name)
+
+            records = await self.manager.get_character_list(context)
+            if len(records) >= 1:
+                result += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
+                result += f"\n"
+                for record in records:
+                    result += f"```"
+                    result += f"{record.to_display_string()}\n"
+                    result += f"```"
+                    result += f"　 {record.site_url}\n"
             else:
                 result += f"あ……。あなたの登録キャラクターが見つからないわ………。"
 
@@ -134,7 +171,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 index = 0
 
                 first_send = f""
-                first_send += f"…ん。あなたの登録キャラクターは次の{len(records)}人よ……。"
+                first_send += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
                 first_send += f"\n"
                 first_send += f"```"
                 for record in records:
@@ -142,7 +179,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                     used_emojis.append(master_emojis[index])
                     index += 1
                 first_send += f"```"
-                first_send += f"どの子にするの？……切り替えるキャラクターを30秒以内に選んで頂戴……。"
+                first_send += f"どの子にするの？……切り替えるキャラクターを `30秒以内` に選んで頂戴……。"
 
                 bot_message = await context.send(first_send)
 
