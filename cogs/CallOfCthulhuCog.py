@@ -5,6 +5,7 @@ from discord.ext import commands
 import asyncio
 
 import LakshmiErrors
+from ChoiceReactionFlow import ChoiceReactionFlow
 from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
 from contents.character.CharacterManager import CharacterManager
 from contents.character.Investigator import Investigator
@@ -144,25 +145,11 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 first_send += f"どの子にするの？……切り替えるキャラクターを30秒以内に選んで頂戴……。"
 
                 bot_message = await context.send(first_send)
-                for emoji in used_emojis:
-                    await bot_message.add_reaction(emoji)
 
-                def character_choice_reaction(reaction: discord.Reaction, member: discord.Member):
-                    return all([
-                        member.id == context.author.id,
-                        reaction.emoji in used_emojis,
-                        reaction.message.id == bot_message.id
-                    ])
+                flow = ChoiceReactionFlow(self.bot, context)
+                flow.set_target_message(bot_message, used_emojis)
 
-                emoji = None
-                try:
-                    reaction, member = await self.bot.wait_for(
-                        'reaction_add', check=character_choice_reaction, timeout=30
-                    )
-                    emoji = reaction.emoji
-                except asyncio.TimeoutError:
-                    emoji = None
-
+                emoji = await flow.wait_for_choice_reaction(timeout=30)
                 if emoji:
                     chosed_index = used_emojis.index(emoji)
                     chosed_character = records[chosed_index]
