@@ -4,10 +4,8 @@ from unittest import result
 import discord
 
 from contents.character.Investigator import Investigator, SkillSet
-from contents.character.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
 
 class InvestigatorEmbedCreator():
-
     @staticmethod
     def __create_embed(char: Investigator, is_summarize_backstory: bool) -> discord.Embed:
         backstory = ""

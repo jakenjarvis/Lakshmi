@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-import re
-import math
-import random
-import datetime
-
 from typing import Union
 
+import datetime
 import asyncio
-
 import nagisa
 
 import discord

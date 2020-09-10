@@ -6,7 +6,7 @@ import aiohttp
 
 import LakshmiErrors
 from contents.character.Investigator import Investigator, SkillSet
-from contents.character.AbstractCharacterGetter import AbstractCharacterGetter
+from contents.character.sitegetter.AbstractCharacterGetter import AbstractCharacterGetter
 
 class CharacterVampireBloodNetGetter(AbstractCharacterGetter):
     DETECT_TARGET_URL = re.compile(r"^.*charasheet\.vampire\-blood\.net.*$", re.IGNORECASE)

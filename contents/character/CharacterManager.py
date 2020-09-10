@@ -13,8 +13,8 @@ from discord.ext import commands
 
 import LakshmiErrors
 from contents.character.Investigator import Investigator
-from contents.character.AbstractCharacterGetter import AbstractCharacterGetter
-from contents.character.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
+from contents.character.sitegetter.AbstractCharacterGetter import AbstractCharacterGetter
+from contents.character.sitegetter.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
 from contents.character.CharactersSheetController import CharactersSheetController
 from contents.character.LakshmiCharactersSheetRecord import LakshmiCharactersSheetRecord
 

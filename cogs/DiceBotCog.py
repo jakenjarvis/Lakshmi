@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
-import re
-import math
-import random
-
-import mojimoji
 from discord.ext import commands
 
-from contents.DiceBot import DiceBot
+from contents.dice.DiceBot import DiceBot
 
 class DiceBotCog(commands.Cog, name='ダイス系'):
     def __init__(self, bot):
