@@ -22,5 +22,5 @@ class AbstractCharacterGetter(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    async def request(self, instance: Investigator, site_url: str) -> bool:
+    async def request(self, site_url: str) -> Investigator:
         pass

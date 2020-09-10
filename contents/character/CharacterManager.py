@@ -14,7 +14,7 @@ from discord.ext import commands
 import LakshmiErrors
 from contents.character.Investigator import Investigator
 from contents.character.sitegetter.AbstractCharacterGetter import AbstractCharacterGetter
-from contents.character.sitegetter.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
+from contents.character.sitegetter.VampireBloodNetGetter import VampireBloodNetGetter
 from contents.character.CharactersSheetController import CharactersSheetController
 from contents.character.LakshmiCharactersSheetRecord import LakshmiCharactersSheetRecord
 
@@ -27,7 +27,7 @@ class CharacterManager():
 
         # 対応サイトの追加
         self.instances: List[AbstractCharacterGetter] = []
-        self.instances.append(CharacterVampireBloodNetGetter())
+        self.instances.append(VampireBloodNetGetter())
 
         self.save_flag = False
 
@@ -45,15 +45,15 @@ class CharacterManager():
     async def request(self, site_url: str) -> Investigator:
         result = None
         cache_investigator: Investigator = None
-        is_cache = False
+        use_cache = False
 
         if site_url in self.__investigators:
             # キャッシュに存在する
             cache_investigator = self.__investigators[site_url]
-            if self.bot.storage.lexicon.get_jst_datetime_now() <= cache_investigator.created_at + datetime.timedelta(minutes=5):
-                is_cache = True
+            if self.bot.storage.lexicon.get_jst_datetime_now() <= cache_investigator.created_at + datetime.timedelta(seconds=30):
+                use_cache = True
 
-        if is_cache:
+        if use_cache:
             # キャッシュを返却
             result = copy.deepcopy(cache_investigator)
         else:
@@ -62,8 +62,8 @@ class CharacterManager():
             if not getter:
                 raise LakshmiErrors.UnsupportedSitesException()
 
-            result = Investigator()
-            if not await getter.request(result, site_url):
+            result = await getter.request(site_url)
+            if not result:
                 raise LakshmiErrors.CharacterNotFoundException()
         return result
 
