@@ -54,17 +54,17 @@ class ShortcutCallOfCthulhuCog(commands.Cog, name='CoC-TRPG系Shortcut'):
         await self.coccog.set_change(context, unique_id)
 
     @commands.command()
-    async def ccif(self, context: commands.Context, unique_id: str):
+    async def ccif(self, context: commands.Context, unique_id: str = ""):
         """Shortcut: ;coc character info full"""
         await self.coccog.info_full(context, unique_id)
 
     @commands.command()
-    async def ccis(self, context: commands.Context, unique_id: str):
+    async def ccis(self, context: commands.Context, unique_id: str = ""):
         """Shortcut: ;coc character info short"""
         await self.coccog.info_short(context, unique_id)
 
     @commands.command()
-    async def ccib(self, context: commands.Context, unique_id: str):
+    async def ccib(self, context: commands.Context, unique_id: str = ""):
         """Shortcut: ;coc character info backstory"""
         await self.coccog.info_backstory(context, unique_id)
 

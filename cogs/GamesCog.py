@@ -3,7 +3,7 @@
 import discord
 from discord.ext import commands
 
-from contents.GameHighAndLow import GameHighAndLow
+from contents.games.GameHighAndLow import GameHighAndLow
 import LakshmiErrors
 
 class GamesCog(commands.Cog, name='ゲーム系'):

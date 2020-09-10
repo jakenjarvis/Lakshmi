@@ -13,8 +13,8 @@ from discord.ext import commands
 
 import LakshmiErrors
 from contents.character.Investigator import Investigator
-from contents.character.AbstractCharacterGetter import AbstractCharacterGetter
-from contents.character.CharacterVampireBloodNetGetter import CharacterVampireBloodNetGetter
+from contents.character.sitegetter.AbstractCharacterGetter import AbstractCharacterGetter
+from contents.character.sitegetter.VampireBloodNetGetter import VampireBloodNetGetter
 from contents.character.CharactersSheetController import CharactersSheetController
 from contents.character.LakshmiCharactersSheetRecord import LakshmiCharactersSheetRecord
 
@@ -27,7 +27,7 @@ class CharacterManager():
 
         # 対応サイトの追加
         self.instances: List[AbstractCharacterGetter] = []
-        self.instances.append(CharacterVampireBloodNetGetter())
+        self.instances.append(VampireBloodNetGetter())
 
         self.save_flag = False
 
@@ -45,15 +45,15 @@ class CharacterManager():
     async def request(self, site_url: str) -> Investigator:
         result = None
         cache_investigator: Investigator = None
-        is_cache = False
+        use_cache = False
 
         if site_url in self.__investigators:
             # キャッシュに存在する
             cache_investigator = self.__investigators[site_url]
-            if self.bot.storage.lexicon.get_jst_datetime_now() <= cache_investigator.created_at + datetime.timedelta(minutes=5):
-                is_cache = True
+            if self.bot.storage.lexicon.get_jst_datetime_now() <= cache_investigator.created_at + datetime.timedelta(seconds=30):
+                use_cache = True
 
-        if is_cache:
+        if use_cache:
             # キャッシュを返却
             result = copy.deepcopy(cache_investigator)
         else:
@@ -62,8 +62,8 @@ class CharacterManager():
             if not getter:
                 raise LakshmiErrors.UnsupportedSitesException()
 
-            result = Investigator()
-            if not await getter.request(result, site_url):
+            result = await getter.request(site_url)
+            if not result:
                 raise LakshmiErrors.CharacterNotFoundException()
         return result
 
@@ -106,10 +106,15 @@ class CharacterManager():
         df = self.__sheet_controller.find_character_by_site_info(author_id, result.site_id1, result.site_id2, result.site_url)
         if len(df) == 0:
             # 新規
+            # activeの設定初期値の決定
+            author_df = self.__sheet_controller.find_characters_by_author_id(author_id)
+            # 初めての登録キャラの場合はTrueとする。
+            value_active = False if len(author_df) >= 1 else True
+
             result.unique_id = self.__sheet_controller.assign_unique_id(result.site_id1, result.site_id2, result.site_url)
             result.author_id = author_id
             result.author_name = author_name
-            result.active = False
+            result.active = value_active
             result.lost = False
             result.image_url = image_url
         else:
@@ -249,11 +254,15 @@ class CharacterManager():
         await self.background_save()
         return result
 
-    async def get_character_information(self, context: commands.Context, unique_id: str) -> Investigator:
+    async def get_character_information(self, context: commands.Context, unique_id: str = "") -> Investigator:
         author_id = str(context.author.id)
         author_name = str(context.author.name)
 
-        df = self.__sheet_controller.find_character_by_unique_id(author_id, unique_id)
+        if len(unique_id) >= 1:
+            df = self.__sheet_controller.find_character_by_unique_id(author_id, unique_id)
+        else:
+            df = self.__sheet_controller.find_active_character_by_author_id(author_id)
+
         if len(df) == 0:
             # 登録がない
             raise LakshmiErrors.CharacterNotFoundException()
