@@ -13,17 +13,17 @@ from contents.character.Investigator import Investigator
 # ;coc character add <URL> サイトのURL指定でキャラ登録
 # ;coc character delete <キャラID> キャラIDを指定してキャラ登録情報削除
 # ;coc character list 登録済みキャラの一覧表示
+# ;coc character urls 登録済みキャラの一覧表示（リンク付き）
 # ;coc character choice リストから選択して使用中設定
 # ;coc character set image <キャラID> <画像URL> キャラIDを指定して画像URL登録
 # ;coc character set change <キャラID> キャラIDを指定して使用中設定
 # ;coc character set lost <キャラID> キャラIDを指定してロスト設定
 # ;coc character info full <キャラID|active> 指定キャラのステータス表示（フル）
-# ;coc character info short <キャラID|active> 指定キャラのステータス表示（簡易）
+# ;coc character info short <キャラID|active> 指定キャラのステータス表示（簡素）
 # ;coc character info backstory <キャラID|active> 指定キャラのステータス表示（キャラ紹介）
+# ;coc character info omitted <キャラID|active> 指定キャラのステータス表示（省略）
 
 # TODO:
-# ;coc character urls 登録済みキャラの一覧表示（リンク付き）
-
 # :coc skill list スキル名で指定できるスキルリストの表示
 # :coc character get skill <検索文字> 使用中キャラのスキルリスト表示
 # :coc character get skill ability
@@ -44,6 +44,7 @@ from contents.character.Investigator import Investigator
 # pではそれ以外の技能ダイスを振っていただく...とか?
 # 〇ｐで数値と文字列両方受け付けて、数値だったらパーセント、文字列だったら技能名から検索して該当するやつでダイス・・・みたいな？
 
+# TODO: embed.set_footerを試す。
 
 class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     def __init__(self, bot):
@@ -335,6 +336,30 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         except Exception as e:
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
+
+    @info.command(name='omitted', aliases=['o'])
+    async def info_omitted(self, context: commands.Context, unique_id: str = ""):
+        """ キャラクターシートのIDを指定して情報（omitted）を表示します。 """
+        try:
+            await context.trigger_typing()
+
+            character = await self.manager.get_character_information(context, unique_id)
+
+            embed = InvestigatorEmbedCreator.create_omitted_status(character)
+
+            # 画像リンクの有効性をチェックして警告表示を入れる。
+            if len(character.image_url) >= 1:
+                if not await self.manager.is_image_url(character.image_url):
+                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                    out_value += f"{character.image_url}"
+                    embed.add_field(name="警告", value=out_value, inline=False)
+
+            await context.send(embed=embed)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
+
 
 def setup(bot):
     bot.add_cog(CallOfCthulhuCog(bot))

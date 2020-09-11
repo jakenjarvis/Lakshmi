@@ -73,5 +73,10 @@ class ShortcutCallOfCthulhuCog(commands.Cog, name='CoC-TRPG系Shortcut'):
         """Shortcut: ;coc character info backstory"""
         await self.coccog.info_backstory(context, unique_id)
 
+    @commands.command()
+    async def ccio(self, context: commands.Context, unique_id: str = ""):
+        """Shortcut: ;coc character info omitted"""
+        await self.coccog.info_omitted(context, unique_id)
+
 def setup(bot):
     bot.add_cog(ShortcutCallOfCthulhuCog(bot))
