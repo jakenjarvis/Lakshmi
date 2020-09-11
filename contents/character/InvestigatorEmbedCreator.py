@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 from unittest import result
 import discord
+import itertools
 
 from contents.character.Investigator import Investigator, SkillSet
 
 class InvestigatorEmbedCreator():
     @staticmethod
-    def __create_embed(char: Investigator, is_summarize_backstory: bool) -> discord.Embed:
+    def __create_information_embed(char: Investigator, is_summarize_backstory: bool) -> discord.Embed:
         backstory = ""
         if is_summarize_backstory:
             backstory = char.backstory.splitlines()[0]
@@ -28,6 +29,19 @@ class InvestigatorEmbedCreator():
 
         if len(char.image_url) >= 1:
             result.set_thumbnail(url=char.image_url)
+
+        return result
+
+    @staticmethod
+    def __create_omitted_embed(char: Investigator) -> discord.Embed:
+        lst = "💀" if char.lost else ""
+
+        result = discord.Embed()
+        result.set_author(
+            name=f"{lst}{char.character_name} - {char.occupation} - {char.sex}({char.age}歳)",
+            url=f"{char.site_url}",
+            icon_url=char.image_url
+            )
 
         return result
 
@@ -59,10 +73,15 @@ class InvestigatorEmbedCreator():
         result.add_field(name="現在SAN値", value=out_value, inline=False)
 
     @staticmethod
-    def __append_characteristics(result: discord.Embed, char: Investigator):
+    def __append_characteristics(result: discord.Embed, char: Investigator, is_omitted_characteristics: bool):
         # 特性
+        if is_omitted_characteristics:
+            abilitys = ["strength", "constitution", "power", "dexterity", "appearance", "size", "intelligence", "education", "idea", "luck", "knowledge"]
+        else:
+            abilitys = char.characteristics.keys()
+
         out_value = f""
-        for key in char.characteristics.keys():
+        for key in abilitys:
             out_value += f"{char.characteristics[key].to_display_string()}　"
         result.add_field(name="特性", value=out_value, inline=False)
 
@@ -127,15 +146,16 @@ class InvestigatorEmbedCreator():
     def create_full_status(char: Investigator) -> discord.Embed:
         is_summarize_backstory = True
         is_change_from_initial_value = False
- 
-        result = InvestigatorEmbedCreator.__create_embed(char, is_summarize_backstory)
+        is_omitted_characteristics = False
+
+        result = InvestigatorEmbedCreator.__create_information_embed(char, is_summarize_backstory)
 
         # 探索者付随情報
         InvestigatorEmbedCreator.__append_info_associated_with_investigator(result, char)
         # 現在SAN値
         InvestigatorEmbedCreator.__append_current_san_value(result, char)
         # 特性
-        InvestigatorEmbedCreator.__append_characteristics(result, char)
+        InvestigatorEmbedCreator.__append_characteristics(result, char, is_omitted_characteristics)
         # スキル
         InvestigatorEmbedCreator.__append_skills(result, char, is_change_from_initial_value)
 
@@ -145,15 +165,16 @@ class InvestigatorEmbedCreator():
     def create_short_status(char: Investigator) -> discord.Embed:
         is_summarize_backstory = True
         is_change_from_initial_value = True
- 
-        result = InvestigatorEmbedCreator.__create_embed(char, is_summarize_backstory)
+        is_omitted_characteristics = False
+
+        result = InvestigatorEmbedCreator.__create_information_embed(char, is_summarize_backstory)
 
         # 探索者付随情報
         InvestigatorEmbedCreator.__append_info_associated_with_investigator(result, char)
         # 現在SAN値
         InvestigatorEmbedCreator.__append_current_san_value(result, char)
         # 特性
-        InvestigatorEmbedCreator.__append_characteristics(result, char)
+        InvestigatorEmbedCreator.__append_characteristics(result, char, is_omitted_characteristics)
         # スキル
         InvestigatorEmbedCreator.__append_skills(result, char, is_change_from_initial_value)
 
@@ -162,10 +183,29 @@ class InvestigatorEmbedCreator():
     @staticmethod
     def create_backstory_status(char: Investigator) -> discord.Embed:
         is_summarize_backstory = False
- 
-        result = InvestigatorEmbedCreator.__create_embed(char, is_summarize_backstory)
+        is_change_from_initial_value = True
+        is_omitted_characteristics = False
+
+        result = InvestigatorEmbedCreator.__create_information_embed(char, is_summarize_backstory)
 
         # 探索者付随情報
         InvestigatorEmbedCreator.__append_info_associated_with_investigator(result, char)
+
+        return result
+
+    @staticmethod
+    def create_omitted_status(char: Investigator) -> discord.Embed:
+        is_summarize_backstory = False
+        is_change_from_initial_value = True
+        is_omitted_characteristics = True
+
+        result = InvestigatorEmbedCreator.__create_omitted_embed(char)
+
+        # 現在SAN値
+        InvestigatorEmbedCreator.__append_current_san_value(result, char)
+        # 特性(省略系)
+        InvestigatorEmbedCreator.__append_characteristics(result, char, is_omitted_characteristics)
+        # スキル
+        InvestigatorEmbedCreator.__append_skills(result, char, is_change_from_initial_value)
 
         return result
