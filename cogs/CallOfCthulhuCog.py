@@ -3,12 +3,14 @@
 import discord
 from discord.ext import commands
 import asyncio
+from decimal import Decimal, ROUND_HALF_UP
 
 import LakshmiErrors
 from ChoiceReactionFlow import ChoiceReactionFlow
 from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
 from contents.character.CharacterManager import CharacterManager
 from contents.character.Investigator import Investigator
+from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills
 
 # ;coc character add <URL> サイトのURL指定でキャラ登録
 # ;coc character delete <キャラID> キャラIDを指定してキャラ登録情報削除
@@ -25,26 +27,21 @@ from contents.character.Investigator import Investigator
 
 # TODO:
 # :coc skill list スキル名で指定できるスキルリストの表示
+# :coc skill find スキル名を探す。
 # :coc character get skill <検索文字> 使用中キャラのスキルリスト表示
-# :coc character get skill ability
-# :coc character get skill combat
-# :coc character get skill search
-# :coc character get skill behavioral
-# :coc character get skill negotiation
-# :coc character get skill knowledge
-# :coc character find <検索文字> キャラの検索
 
+# :coc character find <検索文字> キャラの検索
 # :coc character query skill <query> 条件付き情報表示
 
-
 # 技能名ダイス、技能検索、技能選択ダイス
-
 # 〇;sp にするとか（pと区別するため)
 # spではSANC + アイデア + 知識 + 幸運 + ポイントを振っている技能 を一覧表示させて、リアクションでダイスを降らせる
 # pではそれ以外の技能ダイスを振っていただく...とか?
 # 〇ｐで数値と文字列両方受け付けて、数値だったらパーセント、文字列だったら技能名から検索して該当するやつでダイス・・・みたいな？
 
 # TODO: embed.set_footerを試す。
+# TODO: discord-ext-menusを試す。
+
 
 class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     def __init__(self, bot):
@@ -61,6 +58,12 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     @coc.group(aliases=['char','c'])
     async def character(self, context: commands.Context):
         """詳細は ;help coc character で確認してください。"""
+        if context.invoked_subcommand is None:
+            raise LakshmiErrors.SubcommandNotFoundException()
+
+    @coc.group(aliases=['s'])
+    async def skill(self, context: commands.Context):
+        """詳細は ;help coc skill で確認してください。"""
         if context.invoked_subcommand is None:
             raise LakshmiErrors.SubcommandNotFoundException()
 
@@ -360,6 +363,45 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             # エラー検知時通知
             await self.bot.on_command_error(context, e)
 
+    @skill.command(name='find', aliases=['f'])
+    async def skill_find(self, context: commands.Context, keyword: str):
+        """ アクティブキャラのスキルから、該当するスキルをあいまい検索します。 """
+        try:
+            result = f""
+            await context.trigger_typing()
+
+            author_name = str(context.author.name)
+            display_name = str(context.author.display_name)
+
+            character = await self.manager.get_character_information(context, "")
+
+            search_skills = FuzzySearchInvestigatorSkills(character)
+
+            items = search_skills.search(keyword)
+            if len(items) >= 1:
+                result += f"…ん。{character.character_name}さんのスキルから `{keyword}` をあいまい検索した結果は、次の `{len(items)}件` よ……。"
+                result += f"\n"
+                result += f"```"
+                for item in items:
+                    max_main_distance = item.max_main_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+                    max_sub_distance = item.max_sub_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+                    sum_distance = item.sum_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+                    result += f"{sum_distance}: {item.link_name} = [{item.main_name}({max_main_distance})], [{item.sub_name}({max_sub_distance})]\n"
+                result += f"```"
+
+                if len(items[0].sub_name) >= 1:
+                    pickskillname = f"{items[0].main_name}({items[0].sub_name})"
+                else:
+                    pickskillname = f"{items[0].main_name}"
+                result += f"あえて選ぶなら・・・ `{pickskillname}` かしら……。"
+            else:
+                result += f"あ……。該当するスキルを見つけられなかったわ………。"
+
+            await context.send(result)
+
+        except Exception as e:
+            # エラー検知時通知
+            await self.bot.on_command_error(context, e)
 
 def setup(bot):
     bot.add_cog(CallOfCthulhuCog(bot))
