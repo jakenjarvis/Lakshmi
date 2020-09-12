@@ -21,6 +21,7 @@ extensions = [
     'cogs.GreetingCog',
     'cogs.CallOfCthulhuCog',
     'cogs.ShortcutCallOfCthulhuCog',
+    'cogs.DebugMenuCog',
 ]
 for extension in extensions:
     bot.load_extension(extension)

@@ -14,11 +14,10 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         """1d100固定のパーセント指定でダイスを振ります。(percent)"""
         diceBot = DiceBot()
         try:
-            normalize_commands = self.bot.normalize_commands(command)
             # メッセージの組み立て
             diceBot.append_reply_message(f'{context.author.mention}')
             # ダイスロール
-            diceBot.percent(normalize_commands)
+            diceBot.percent(command)
 
             # 処理後通知
             if diceBot.processing_flag:
@@ -35,11 +34,10 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         """対抗ロールでダイスを振ります。(versus)"""
         diceBot = DiceBot()
         try:
-            normalize_commands = self.bot.normalize_commands(command)
             # メッセージの組み立て
             diceBot.append_reply_message(f'{context.author.mention}')
             # ダイスロール
-            diceBot.versus(normalize_commands)
+            diceBot.versus(command)
 
             # 処理後通知
             if diceBot.processing_flag:
@@ -56,11 +54,10 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         """mDn形式で面を指定してダイスを振ります。(fate)"""
         diceBot = DiceBot()
         try:
-            normalize_commands = self.bot.normalize_commands(command)
             # メッセージの組み立て
             diceBot.append_reply_message(f'{context.author.mention}')
             # ダイスロール
-            diceBot.roll(normalize_commands)
+            diceBot.roll(command)
 
             # 処理後通知
             if diceBot.processing_flag:
@@ -77,11 +74,10 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         """fと同じ。結果をDMで通知します。(secret fate)"""
         diceBot = DiceBot()
         try:
-            normalize_commands = self.bot.normalize_commands(command)
             # メッセージの組み立て NOTE: DMするのでメンションは付けない
             #diceBot.append_reply_message(f'{context.author.mention}')
             # ダイスロール
-            diceBot.roll(normalize_commands)
+            diceBot.roll(command)
 
             # 処理後通知
             if diceBot.processing_flag:

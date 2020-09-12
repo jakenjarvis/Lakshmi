@@ -364,7 +364,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
             await self.bot.on_command_error(context, e)
 
     @skill.command(name='find', aliases=['f'])
-    async def skill_find(self, context: commands.Context, keyword: str):
+    async def skill_find(self, context: commands.Context, *, keyword: str):
         """ アクティブキャラのスキルから、該当するスキルをあいまい検索します。 """
         try:
             result = f""

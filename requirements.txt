@@ -12,3 +12,4 @@ ulid-py
 pyxDamerauLevenshtein
 nagisa
 gensim
+git+https://github.com/Rapptz/discord-ext-menus
