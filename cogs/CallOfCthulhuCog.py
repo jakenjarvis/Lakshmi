@@ -41,6 +41,7 @@ from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills
 
 # TODO: embed.set_footerを試す。
 # TODO: discord-ext-menusを試す。
+# TODO: picrew画像取得対応
 
 
 class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
