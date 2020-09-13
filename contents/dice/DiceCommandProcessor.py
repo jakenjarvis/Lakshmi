@@ -5,6 +5,7 @@ import re
 import math
 import random
 from decimal import Decimal
+from typing import Pattern, Match
 
 import mojimoji
 
@@ -27,10 +28,10 @@ class CommentSeparator():
     VALID_COMMENT = re.compile(r"(#|＃)")
 
     def __init__(self):
-        self.command_line = ""
-        self.comment = ""
+        self.command_line: str = ""
+        self.comment: str = ""
 
-    def separate(self, command):
+    def separate(self, command: str):
         one_command_line = "".join(command.splitlines()) # 改行潰しでノーマライズ
         match = CommentSeparator.VALID_COMMENT.search(one_command_line)
         if match:
@@ -42,21 +43,22 @@ class CommentSeparator():
             # コメント無し
             self.command_line = mojimoji.zen_to_han(one_command_line.strip())
             self.comment = ""
+        return self
 
-    def is_comment(self):
+    def is_comment(self) -> bool:
         return len(self.comment) >= 1
 
 class ComparisonSeparator():
     VALID_COMPARISON = re.compile(r"([><=]+)", re.IGNORECASE)
-    VALID_CHARACTERS = re.compile(r"^([-+*/0-9\.)( ])+$", re.IGNORECASE)
+    VALID_VALUE_CHARACTERS = re.compile(r"^([-+*/0-9\.)( ])+$", re.IGNORECASE)
 
     def __init__(self):
-        self.dice_command = ""
-        self.conditional_expression = ""
-        self.comparison_name = ""
-        self.comparison_value = ""
+        self.dice_command: str = ""
+        self.conditional_expression: str = ""
+        self.comparison_name: str = ""
+        self.comparison_value: str = ""
 
-    def separate(self, command):
+    def separate(self, command: str):
         # 大小判定処理
         match = ComparisonSeparator.VALID_COMPARISON.search(command)
         if match:
@@ -65,34 +67,40 @@ class ComparisonSeparator():
             if len(split_command) != 3:
                 raise InvalidFormulaException()
 
-            self.dice_command = split_command[0].strip()
+            self.dice_command = split_command[0].strip().lower()
             self.conditional_expression = split_command[1].replace('=>','>=').replace('=<','<=').strip()
-
             comparison = split_command[2].strip()
-            value_match = ComparisonSeparator.VALID_CHARACTERS.search(comparison)
+            value_match = ComparisonSeparator.VALID_VALUE_CHARACTERS.search(comparison)
             if value_match:
                 self.comparison_name = ""
-                self.comparison_value = comparison
+                self.comparison_value = str(comparison)
             else:
-                self.comparison_name = comparison
+                self.comparison_name = str(comparison)
                 self.comparison_value = ""
         else:
             # 大小記号無し
-            self.dice_command = command
+            self.dice_command = command.lower()
+        return self
 
-    def is_comparison(self):
+    def is_comparison(self) -> bool:
         return self.conditional_expression != ""
 
-    def get_calculation_expression(self):
-        return f"{self.dice_command.lower()}{self.conditional_expression}{self.comparison_value}"
+    def set_comparison_name(self, name: str):
+        self.comparison_name = str(name)
 
-    def get_display_expression(self):
+    def set_comparison_value(self, value: str):
+        self.comparison_value = str(value)
+
+    def get_calculation_expression(self) -> str:
+        return f"{self.dice_command}{self.conditional_expression}{self.comparison_value}"
+
+    def get_display_expression(self) -> str:
         comparison = ""
         if len(self.comparison_name) >= 1:
             comparison = f"{self.comparison_name}({self.comparison_value})"
         else:
             comparison = f"{self.comparison_value}"
-        return f"{self.dice_command.lower()}{self.conditional_expression}{comparison}"
+        return f"{self.dice_command}{self.conditional_expression}{comparison}"
 
 
 class DiceCommandProcessor():
@@ -101,12 +109,11 @@ class DiceCommandProcessor():
 
     REPLACE_DICE = re.compile(r"((\d+)d(\d+))", re.IGNORECASE)
     VALID_CHARACTERS = re.compile(r"^([-+*/a-zA-Z0-9\.)(<>= ])+$", re.IGNORECASE)
-    VALID_PROCESS_CRITICAL = re.compile(r"^1d100([=><]+[-+*/0-9\.]+)?$", re.IGNORECASE)
 
     def __init__(self):
-        self.__result = ""
-        self.__calculation = ""
-        self.__total = 0
+        self.__result: str = ""
+        self.__calculation: str = ""
+        self.__total: int = 0
 
         self.comment_separator: CommentSeparator = None
         self.comparison_separator: ComparisonSeparator = None
@@ -114,17 +121,18 @@ class DiceCommandProcessor():
         self.critical_result: CriticalResult = None
 
     @property
-    def result(self):
+    def result(self) -> str:
         return self.__result
 
     @property
-    def total(self):
+    def total(self) -> int:
         return self.__total
 
-    def __replace_display_string(self, text):
-        return text.replace('+','＋').replace('-','－').replace('*','×').replace('/','÷').replace('>=','≧').replace('<=','≦')
+    def __replace_display_string(self, text: str) -> str:
+        return text.replace('+','＋').replace('-','－').replace('*','×').replace('/','÷') \
+            .replace('>=','≧').replace('<=','≦').replace('>','＞').replace('<','＜')
 
-    def __replace_dice_string(self, match):
+    def __replace_dice_string(self, match: Match) -> str:
         result = ""
         number = int(match.group(2))
         if number >= DiceCommandProcessor.MAX_DICE_NUMBER:
@@ -137,7 +145,7 @@ class DiceCommandProcessor():
         result = "(" + "+".join(str(random.randint(1, surface)) for _ in range(number)) + ")"
         return result
 
-    def execute_eval(self, formula):
+    def execute_eval(self, formula: str) -> any:
         result = None
         # 安全性のチェック
         if not DiceCommandProcessor.VALID_CHARACTERS.search(formula):
@@ -156,13 +164,25 @@ class DiceCommandProcessor():
         self.comparison_separator = ComparisonSeparator()
         return self.comparison_separator
 
-    def is_judgment_result(self):
+    def is_judgment_result(self) -> bool:
         return self.judgment_result != None
 
-    def is_critical_result(self):
+    def is_critical_result(self) -> bool:
         return self.critical_result != None
 
-    def roll(self):
+    def standard_roll(self, command: str) -> str:
+        comment_separator = self.get_comment_separator().separate(command)
+        comparison_separator = self.get_comparison_separator().separate(comment_separator.command_line)
+        return self.roll()
+
+    def roll(self) -> str:
+        if self.comment_separator is None:
+            raise RuntimeError()
+        if self.comparison_separator is None:
+            raise RuntimeError()
+        if len(self.comparison_separator.comparison_value) == 0:
+            raise InvalidCharacterException()
+
         # 元コマンド逆組立て
         calculation_command_line = self.comparison_separator.get_calculation_expression()
         display_command_line = self.comparison_separator.get_display_expression()
@@ -179,7 +199,7 @@ class DiceCommandProcessor():
 
         # クリティカル判定（D100のみ）
         critical = ""
-        match = DiceCommandProcessor.VALID_PROCESS_CRITICAL.search(calculation_command_line)
+        match = CriticalResult.VALID_PROCESS_CRITICAL.search(calculation_command_line)
         if match:
             # 1D100 only
             self.critical_result = CriticalResult(self)
@@ -193,8 +213,8 @@ class DiceCommandProcessor():
 
 class JudgmentResult():
     def __init__(self, processor: DiceCommandProcessor):
-        self.__result = ""
-        self.__success = None
+        self.__result: str = ""
+        self.__success: bool = None
 
         # 大小判定
         judgment_string = f"{str(processor.total)}{processor.comparison_separator.conditional_expression}{processor.comparison_separator.comparison_value}"
@@ -205,18 +225,20 @@ class JudgmentResult():
             self.__result = " [失敗] ×"
 
     @property
-    def result(self):
+    def result(self) -> str:
         return self.__result
 
     @property
-    def success(self):
+    def success(self) -> bool:
         return self.__success
 
 class CriticalResult():
+    VALID_PROCESS_CRITICAL = re.compile(r"^1d100([=><]+[-+*/0-9\.]+)?$", re.IGNORECASE)
+
     def __init__(self, processor: DiceCommandProcessor):
-        self.__result = ""
-        self.__critical = False
-        self.__fumble = False
+        self.__result: str = ""
+        self.__critical: bool = False
+        self.__fumble: bool = False
 
         # 1D100 only
         if processor.total <= 5:
@@ -227,13 +249,13 @@ class CriticalResult():
             self.__fumble = True
 
     @property
-    def result(self):
+    def result(self) -> str:
         return self.__result
 
     @property
-    def critical(self):
+    def critical(self) -> bool:
         return self.__critical
 
     @property
-    def fumble(self):
+    def fumble(self) -> bool:
         return self.__fumble
