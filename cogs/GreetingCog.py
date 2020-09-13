@@ -17,34 +17,28 @@ class GreetingCog(commands.Cog, name='挨拶系'):
     @commands.command()
     async def nagisa(self, context: commands.Context, *, message: str):
         """指定した文章を形態素解析します。"""
-        try:
-            character_message = self.bot.storage.lexicon.get_character_message_for_command_nagisa()
-            result = f"{character_message}\n"
+        stock = []
+        character_message = self.bot.storage.lexicon.get_character_message_for_command_nagisa()
+        result = f"{character_message}\n"
 
-            await context.trigger_typing()
+        await context.trigger_typing()
 
-            words = nagisa.tagging(message)
-            for index in range(len(words.words)):
-                word = words.words[index]
-                postag = words.postags[index]
-                result += " " + word + "`[" + postag + "]`"
+        words = nagisa.tagging(message)
+        for index in range(len(words.words)):
+            word = words.words[index]
+            postag = words.postags[index]
+            result += " " + word + "`[" + postag + "]`"
 
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock.append(f'{result}')
+        await self.bot.send("\n".join(stock))
 
     @commands.command()
     async def hello(self, context: commands.Context):
         """簡単な応答を返します。(Lakshmiの生存確認用)"""
-        try:
-            character_message = self.bot.storage.lexicon.get_character_message_for_command_hello()
-            await context.send(character_message)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock = []
+        character_message = self.bot.storage.lexicon.get_character_message_for_command_hello()
+        stock.append(f'{character_message}')
+        await self.bot.send("\n".join(stock))
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

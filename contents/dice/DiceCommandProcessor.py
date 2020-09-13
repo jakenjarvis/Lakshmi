@@ -48,6 +48,9 @@ class CommentSeparator():
     def is_comment(self) -> bool:
         return len(self.comment) >= 1
 
+    def set_comment(self, comment: str):
+        self.comment = str(comment)
+
 class ComparisonSeparator():
     VALID_COMPARISON = re.compile(r"([><=]+)", re.IGNORECASE)
     VALID_VALUE_CHARACTERS = re.compile(r"^([-+*/0-9\.)( ])+$", re.IGNORECASE)
@@ -79,11 +82,17 @@ class ComparisonSeparator():
                 self.comparison_value = ""
         else:
             # 大小記号無し
-            self.dice_command = command.lower()
+            self.dice_command = command.strip().lower()
         return self
 
     def is_comparison(self) -> bool:
         return self.conditional_expression != ""
+
+    def set_dice_command(self, command: str):
+        self.dice_command = str(command)
+
+    def set_conditional_expression(self, conditional_expression: str):
+        self.conditional_expression = str(conditional_expression)
 
     def set_comparison_name(self, name: str):
         self.comparison_name = str(name)
@@ -97,11 +106,13 @@ class ComparisonSeparator():
     def get_display_expression(self) -> str:
         comparison = ""
         if len(self.comparison_name) >= 1:
-            comparison = f"{self.comparison_name}({self.comparison_value})"
+            if str(self.comparison_name) != str(self.comparison_value):
+                comparison = f"{self.comparison_value}({self.comparison_name})"
+            else:
+                comparison = f"{self.comparison_value}"
         else:
             comparison = f"{self.comparison_value}"
         return f"{self.dice_command}{self.conditional_expression}{comparison}"
-
 
 class DiceCommandProcessor():
     MAX_DICE_NUMBER = 100       # ダイスの数の最大
@@ -170,25 +181,28 @@ class DiceCommandProcessor():
     def is_critical_result(self) -> bool:
         return self.critical_result != None
 
-    def standard_roll(self, command: str) -> str:
+    def roll(self, command: str) -> str:
         comment_separator = self.get_comment_separator().separate(command)
         comparison_separator = self.get_comparison_separator().separate(comment_separator.command_line)
-        return self.roll()
+        return self.dice_command_roll()
 
-    def roll(self) -> str:
+    def dice_command_roll(self) -> str:
         if self.comment_separator is None:
             raise RuntimeError()
         if self.comparison_separator is None:
             raise RuntimeError()
-        if len(self.comparison_separator.comparison_value) == 0:
-            raise InvalidCharacterException()
+
+        if self.comparison_separator.is_comparison():
+            if len(self.comparison_separator.comparison_value) == 0:
+                raise InvalidCharacterException()
 
         # 元コマンド逆組立て
         calculation_command_line = self.comparison_separator.get_calculation_expression()
         display_command_line = self.comparison_separator.get_display_expression()
 
         # ダイス本処理
-        self.__calculation = DiceCommandProcessor.REPLACE_DICE.sub(self.__replace_dice_string, self.comparison_separator.dice_command)
+        dice_command = self.comparison_separator.dice_command.replace(' ','')
+        self.__calculation = DiceCommandProcessor.REPLACE_DICE.sub(self.__replace_dice_string, dice_command)
         self.__total = math.ceil(self.execute_eval(self.__calculation)) # 小数点切り上げ
 
         # 大小判定
