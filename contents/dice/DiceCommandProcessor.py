@@ -158,11 +158,12 @@ class DiceCommandProcessor():
 
     def execute_eval(self, formula: str) -> any:
         result = None
+        target = mojimoji.zen_to_han(formula)
         # 安全性のチェック
-        if not DiceCommandProcessor.VALID_CHARACTERS.search(formula):
+        if not DiceCommandProcessor.VALID_CHARACTERS.search(target):
             raise InvalidCharacterException()
         try:
-            result = eval(formula)
+            result = eval(target)
         except Exception as e:
             raise InvalidFormulaException()
         return result

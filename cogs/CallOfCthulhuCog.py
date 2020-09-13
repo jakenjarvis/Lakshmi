@@ -40,6 +40,8 @@ from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills
 # 〇ｐで数値と文字列両方受け付けて、数値だったらパーセント、文字列だったら技能名から検索して該当するやつでダイス・・・みたいな？
 
 # TODO: embed.set_footerを試す。
+#embed.set_footer(text="Footer TEST", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
+
 # TODO: discord-ext-menusを試す。
 # TODO: picrew画像取得対応
 

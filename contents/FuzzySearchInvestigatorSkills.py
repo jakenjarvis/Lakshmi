@@ -4,6 +4,8 @@ import re
 from decimal import Decimal
 from typing import List, Dict
 from dataclasses import dataclass, fields, field
+from discord.ext import commands
+import mojimoji
 
 import pandas as pd
 
@@ -18,7 +20,9 @@ class OneWord():
     distance: Decimal = field(default_factory=lambda: Decimal("0.0"))
 
     def calc(self, search_word: str):
-        self.distance = Decimal("1.0") - Decimal(str(normalized_damerau_levenshtein_distance(self.keyword, search_word)))
+        word1_string = mojimoji.han_to_zen(search_word.lower())
+        word2_string = mojimoji.han_to_zen(self.keyword.lower())
+        self.distance = Decimal("1.0") - Decimal(str(normalized_damerau_levenshtein_distance(word1_string, word2_string)))
         return self
 
 @dataclass
@@ -177,8 +181,8 @@ class FuzzySearchInvestigatorSkills():
 
         return self
 
-    def search(self, text: str) -> List[SearchKeyword]:
-        result: List[SearchKeyword] = []
+    def search(self, text: str) -> List[SearchResult]:
+        result: List[SearchResult] = []
         # あらかじめ、あいまい単語辞書を作っておく。正しいキーワードをキーとし、類似ワードをリスト化する。
         # この時、メインとサブのどちらでも使う単語、使いそうな単語を全て入れておく。
 
@@ -246,4 +250,24 @@ class FuzzySearchInvestigatorSkills():
             newRow.sum_distance = Decimal(str(row["sum_distance"]))
             result.append(newRow)
 
+        return result
+
+    def get_skill_value(self, link_name: str) -> int:
+        result: int = 0
+        if "sanity_points" in link_name:
+            result = int(self.investigator.sanity_points.current)
+        elif link_name in self.investigator.characteristics.keys():
+            result = int(self.investigator.characteristics[link_name].current)
+        elif link_name in self.investigator.combat_skills.keys():
+            result = int(self.investigator.combat_skills[link_name].current)
+        elif link_name in self.investigator.search_skills.keys():
+            result = int(self.investigator.search_skills[link_name].current)
+        elif link_name in self.investigator.behavioral_skills.keys():
+            result = int(self.investigator.behavioral_skills[link_name].current)
+        elif link_name in self.investigator.negotiation_skills.keys():
+            result = int(self.investigator.negotiation_skills[link_name].current)
+        elif link_name in self.investigator.knowledge_skills.keys():
+            result = int(self.investigator.knowledge_skills[link_name].current)
+        else:
+            result = -1
         return result
