@@ -20,13 +20,8 @@ class GamesCog(commands.Cog, name='ゲーム系'):
     @game.command(aliases=['highlow','hl'])
     async def highandlow(self, context: commands.Context):
         """ゲーム「High and Low」でLakshmiと遊びます。"""
-        try:
-            game = GameHighAndLow(self.bot)
-            await game.high_and_low(context)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        game = GameHighAndLow(self.bot)
+        await game.high_and_low(context)
 
 def setup(bot):
     bot.add_cog(GamesCog(bot))

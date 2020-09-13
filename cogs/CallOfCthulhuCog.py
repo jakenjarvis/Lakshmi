@@ -41,6 +41,7 @@ from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills
 
 # TODO: embed.set_footerを試す。
 # TODO: discord-ext-menusを試す。
+# TODO: picrew画像取得対応
 
 
 class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
@@ -70,146 +71,119 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     @character.command(name='add', aliases=['a'])
     async def character_add(self, context: commands.Context, url: str):
         """ キャラクターシートのURLを指定してLakshmiに登録します。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            character = await self.manager.add_character(context, url)
+        character = await self.manager.add_character(context, url)
 
-            result += f"…ふぅ。無事……{character.character_name}さんを登録したわ……。\n"
-            result += f"Idは `{character.unique_id}` よ…。"
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock.append(f"…ふぅ。無事……{character.character_name}さんを登録したわ……。")
+        stock.append(f"Idは `{character.unique_id}` よ…。")
+        await self.bot.send("\n".join(stock))
 
     @character.command(name='delete') # aliases=['del', 'd'] 危険なので省略させない。
     async def character_delete(self, context: commands.Context, unique_id: str):
         """ Lakshmiの登録から指定したキャラクターを削除します。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            character = await self.manager.delete_character(context, unique_id)
+        character = await self.manager.delete_character(context, unique_id)
 
-            result += f"……ん。無事……{character.character_name}さんを削除……寂しいけど……さようなら……。"
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock.append(f"……ん。無事……{character.character_name}さんを削除……寂しいけど……さようなら……。")
+        await self.bot.send("\n".join(stock))
 
     @character.command(name='list', aliases=['l'])
     async def character_list(self, context: commands.Context):
         """ Lakshmiに登録済みのキャラクターシートの一覧を表示します。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            author_name = str(context.author.name)
-            display_name = str(context.author.display_name)
+        author_name = str(context.author.name)
+        display_name = str(context.author.display_name)
 
-            records = await self.manager.get_character_list(context)
-            if len(records) >= 1:
-                result += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
-                result += f"\n"
-                result += f"```"
-                for record in records:
-                    result += f"{record.to_display_string()}\n"
-                result += f"```"
-            else:
-                result += f"あ……。あなたの登録キャラクターが見つからないわ………。"
+        records = await self.manager.get_character_list(context)
+        if len(records) >= 1:
+            stock.append(f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。")
+            stock.append(f"```")
+            for record in records:
+                stock.append(f"{record.to_display_string()}")
+            stock.append(f"```")
+        else:
+            stock.append(f"あ……。あなたの登録キャラクターが見つからないわ………。")
 
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        await self.bot.send("\n".join(stock))
 
     @character.command(name='urls', aliases=['u'])
     async def character_urls(self, context: commands.Context):
         """ Lakshmiに登録済みのキャラクターシートの一覧（リンク付き）を表示します。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            author_name = str(context.author.name)
-            display_name = str(context.author.display_name)
+        author_name = str(context.author.name)
+        display_name = str(context.author.display_name)
 
-            records = await self.manager.get_character_list(context)
-            if len(records) >= 1:
-                result += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
-                result += f"\n"
-                for record in records:
-                    result += f"```"
-                    result += f"{record.to_display_string()}\n"
-                    result += f"```"
-                    result += f"　 {record.site_url}\n"
-            else:
-                result += f"あ……。あなたの登録キャラクターが見つからないわ………。"
+        records = await self.manager.get_character_list(context)
+        if len(records) >= 1:
+            stock.append(f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。")
+            for record in records:
+                stock.append(f"```")
+                stock.append(f"{record.to_display_string()}")
+                stock.append(f"```　 {record.site_url}") # ここに改行が入ると行が空くので注意
+        else:
+            stock.append(f"あ……。あなたの登録キャラクターが見つからないわ………。")
 
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        await self.bot.send("\n".join(stock))
 
     @character.command(name='choice', aliases=['c'])
     async def character_choice(self, context: commands.Context):
         """ アクティブなキャラクターを選択したキャラクターに切り替えます。 """
-        try:
-            # max 30
-            master_emojis = [
-                "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
-                "☮️", "✝️", "☪️", "🕉", "☸️", "✡️", "☯️", "☦️", "♈️", "♉️",
-                "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"
-                ]
-            used_emojis = []
+        stock = []
+        # max 30
+        master_emojis = [
+            "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
+            "☮️", "✝️", "☪️", "🕉", "☸️", "✡️", "☯️", "☦️", "♈️", "♉️",
+            "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"
+            ]
+        used_emojis = []
 
-            author_name = str(context.author.name)
-            display_name = str(context.author.display_name)
+        author_name = str(context.author.name)
+        display_name = str(context.author.display_name)
 
-            records = await self.manager.get_character_list(context)
-            if len(records) >= 1:
-                index = 0
+        records = await self.manager.get_character_list(context)
+        if len(records) >= 1:
+            index = 0
 
-                first_send = f""
-                first_send += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
-                first_send += f"\n"
-                first_send += f"```"
-                for record in records:
-                    first_send += f" {master_emojis[index]} {record.to_display_string()}\n"
-                    used_emojis.append(master_emojis[index])
-                    index += 1
-                first_send += f"```"
-                first_send += f"どの子にするの？……切り替えるキャラクターを `30秒以内` に選んで頂戴……。"
+            first_send = f""
+            first_send += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
+            first_send += f"\n"
+            first_send += f"```"
+            for record in records:
+                first_send += f" {master_emojis[index]} {record.to_display_string()}\n"
+                used_emojis.append(master_emojis[index])
+                index += 1
+            first_send += f"```"
+            first_send += f"どの子にするの？……切り替えるキャラクターを `30秒以内` に選んで頂戴……。"
 
-                bot_message = await context.send(first_send)
+            bot_message = await context.send(first_send) # ここでself.bot.sendは使えない。
 
-                flow = ChoiceReactionFlow(self.bot, context)
-                flow.set_target_message(bot_message, used_emojis)
+            flow = ChoiceReactionFlow(self.bot, context)
+            flow.set_target_message(bot_message, used_emojis)
 
-                emoji = await flow.wait_for_choice_reaction(timeout=30)
-                if emoji:
-                    chosed_index = used_emojis.index(emoji)
-                    chosed_character = records[chosed_index]
+            emoji = await flow.wait_for_choice_reaction(timeout=30)
+            if emoji:
+                chosed_index = used_emojis.index(emoji)
+                chosed_character = records[chosed_index]
 
-                    unique_id = chosed_character.unique_id
-                    records = await self.manager.set_character_active(context, unique_id)
+                unique_id = chosed_character.unique_id
+                records = await self.manager.set_character_active(context, unique_id)
 
-                    result = f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
-                    await context.send(result)
-                else:
-                    result = f'時間切れよ………{context.author.display_name}さんは優柔不断ね……。'
-                    await context.send(result)
+                stock.append(f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。")
+                await self.bot.send("\n".join(stock))
             else:
-                result = f"あ……。あなたの登録キャラクターが見つからないわ………。"
-                await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+                stock.append(f'時間切れよ………{context.author.display_name}さんは優柔不断ね……。')
+                await self.bot.send("\n".join(stock))
+        else:
+            stock.append(f"あ……。あなたの登録キャラクターが見つからないわ………。")
+            await self.bot.send("\n".join(stock))
 
     @character.group(aliases=['s'])
     async def set(self, context: commands.Context):
@@ -220,50 +194,35 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     @set.command(name='image', aliases=['img', 'i'])
     async def set_image(self, context: commands.Context, unique_id: str, image_url: str):
         """ キャラクターと画像URLを指定して、指定したキャラクターのイメージ画像を登録します。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            records = await self.manager.set_character_image(context, unique_id, image_url)
+        records = await self.manager.set_character_image(context, unique_id, image_url)
 
-            result += f"…ん。{records.character_name}さんの画像を登録したわ……。"
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock.append(f"…ん。{records.character_name}さんの画像を登録したわ……。")
+        await self.bot.send("\n".join(stock))
 
     @set.command(name='change', aliases=['c'])
     async def set_change(self, context: commands.Context, unique_id: str):
         """ アクティブなキャラクターを指定したキャラクターに切り替えます。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            records = await self.manager.set_character_active(context, unique_id)
+        records = await self.manager.set_character_active(context, unique_id)
 
-            result += f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。"
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock.append(f"…ふぅ。{records.character_name}さんをアクティブに設定したわ……。")
+        await self.bot.send("\n".join(stock))
 
     @set.command(name='lost', aliases=['l'])
     async def set_lost(self, context: commands.Context, unique_id: str):
         """ 指定したキャラクターをロスト状態に設定します（戻せません）。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            records = await self.manager.set_character_lost(context, unique_id)
+        records = await self.manager.set_character_lost(context, unique_id)
 
-            result += f"…あぅ。ロスト設定したわ……。{records.character_name}さんのご冥福をお祈りいたします……。"
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        stock.append(f"…あぅ。ロスト設定したわ……。{records.character_name}さんのご冥福をお祈りいたします……。")
+        await self.bot.send("\n".join(stock))
 
     @character.group(aliases=['i'])
     async def info(self, context: commands.Context):
@@ -274,134 +233,108 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     @info.command(name='full', aliases=['f'])
     async def info_full(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（Full）を表示します。 """
-        try:
-            await context.trigger_typing()
+        await context.trigger_typing()
 
-            character = await self.manager.get_character_information(context, unique_id)
+        character = await self.manager.get_character_information(context, unique_id)
 
-            embed = InvestigatorEmbedCreator.create_full_status(character)
+        embed = InvestigatorEmbedCreator.create_full_status(character)
 
-            # 画像リンクの有効性をチェックして警告表示を入れる。
-            if len(character.image_url) >= 1:
-                if not await self.manager.is_image_url(character.image_url):
-                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
-                    out_value += f"{character.image_url}"
-                    embed.add_field(name="警告", value=out_value, inline=False)
+        # 画像リンクの有効性をチェックして警告表示を入れる。
+        if len(character.image_url) >= 1:
+            if not await self.manager.is_image_url(character.image_url):
+                out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                out_value += f"{character.image_url}"
+                embed.add_field(name="警告", value=out_value, inline=False)
 
-            await context.send(embed=embed)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        await self.bot.send(embed=embed)
 
     @info.command(name='short', aliases=['s'])
     async def info_short(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（short）を表示します。 """
-        try:
-            await context.trigger_typing()
+        await context.trigger_typing()
 
-            character = await self.manager.get_character_information(context, unique_id)
+        character = await self.manager.get_character_information(context, unique_id)
 
-            embed = InvestigatorEmbedCreator.create_short_status(character)
+        embed = InvestigatorEmbedCreator.create_short_status(character)
 
-            # 画像リンクの有効性をチェックして警告表示を入れる。
-            if len(character.image_url) >= 1:
-                if not await self.manager.is_image_url(character.image_url):
-                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
-                    out_value += f"{character.image_url}"
-                    embed.add_field(name="警告", value=out_value, inline=False)
+        # 画像リンクの有効性をチェックして警告表示を入れる。
+        if len(character.image_url) >= 1:
+            if not await self.manager.is_image_url(character.image_url):
+                out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                out_value += f"{character.image_url}"
+                embed.add_field(name="警告", value=out_value, inline=False)
 
-            await context.send(embed=embed)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        await self.bot.send(embed=embed)
 
     @info.command(name='backstory', aliases=['back', 'story', 'bs', 'b'])
     async def info_backstory(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（backstory）を表示します。 """
-        try:
-            await context.trigger_typing()
+        await context.trigger_typing()
 
-            character = await self.manager.get_character_information(context, unique_id)
+        character = await self.manager.get_character_information(context, unique_id)
 
-            embed = InvestigatorEmbedCreator.create_backstory_status(character)
+        embed = InvestigatorEmbedCreator.create_backstory_status(character)
 
-            # 画像リンクの有効性をチェックして警告表示を入れる。
-            if len(character.image_url) >= 1:
-                if not await self.manager.is_image_url(character.image_url):
-                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
-                    out_value += f"{character.image_url}"
-                    embed.add_field(name="警告", value=out_value, inline=False)
+        # 画像リンクの有効性をチェックして警告表示を入れる。
+        if len(character.image_url) >= 1:
+            if not await self.manager.is_image_url(character.image_url):
+                out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                out_value += f"{character.image_url}"
+                embed.add_field(name="警告", value=out_value, inline=False)
 
-            await context.send(embed=embed)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        await self.bot.send(embed=embed)
 
     @info.command(name='omitted', aliases=['o'])
     async def info_omitted(self, context: commands.Context, unique_id: str = ""):
         """ キャラクターシートのIDを指定して情報（omitted）を表示します。 """
-        try:
-            await context.trigger_typing()
+        await context.trigger_typing()
 
-            character = await self.manager.get_character_information(context, unique_id)
+        character = await self.manager.get_character_information(context, unique_id)
 
-            embed = InvestigatorEmbedCreator.create_omitted_status(character)
+        embed = InvestigatorEmbedCreator.create_omitted_status(character)
 
-            # 画像リンクの有効性をチェックして警告表示を入れる。
-            if len(character.image_url) >= 1:
-                if not await self.manager.is_image_url(character.image_url):
-                    out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
-                    out_value += f"{character.image_url}"
-                    embed.add_field(name="警告", value=out_value, inline=False)
+        # 画像リンクの有効性をチェックして警告表示を入れる。
+        if len(character.image_url) >= 1:
+            if not await self.manager.is_image_url(character.image_url):
+                out_value = f"…むぅ。画像URLのリンク先……見つからないわ……。もう一度登録しなおしてみて……。\n"
+                out_value += f"{character.image_url}"
+                embed.add_field(name="警告", value=out_value, inline=False)
 
-            await context.send(embed=embed)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+        await self.bot.send(embed=embed)
 
     @skill.command(name='find', aliases=['f'])
-    async def skill_find(self, context: commands.Context, keyword: str):
+    async def skill_find(self, context: commands.Context, *, keyword: str):
         """ アクティブキャラのスキルから、該当するスキルをあいまい検索します。 """
-        try:
-            result = f""
-            await context.trigger_typing()
+        stock = []
+        await context.trigger_typing()
 
-            author_name = str(context.author.name)
-            display_name = str(context.author.display_name)
+        author_name = str(context.author.name)
+        display_name = str(context.author.display_name)
 
-            character = await self.manager.get_character_information(context, "")
+        character = await self.manager.get_character_information(context, "")
 
-            search_skills = FuzzySearchInvestigatorSkills(character)
+        search_skills = FuzzySearchInvestigatorSkills(character)
 
-            items = search_skills.search(keyword)
-            if len(items) >= 1:
-                result += f"…ん。{character.character_name}さんのスキルから `{keyword}` をあいまい検索した結果は、次の `{len(items)}件` よ……。"
-                result += f"\n"
-                result += f"```"
-                for item in items:
-                    max_main_distance = item.max_main_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
-                    max_sub_distance = item.max_sub_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
-                    sum_distance = item.sum_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
-                    result += f"{sum_distance}: {item.link_name} = [{item.main_name}({max_main_distance})], [{item.sub_name}({max_sub_distance})]\n"
-                result += f"```"
+        items = search_skills.search(keyword)
+        if len(items) >= 1:
+            stock.append(f"…ん。{character.character_name}さんのスキルから `{keyword}` をあいまい検索した結果は、次の `{len(items)}件` よ……。")
 
-                if len(items[0].sub_name) >= 1:
-                    pickskillname = f"{items[0].main_name}({items[0].sub_name})"
-                else:
-                    pickskillname = f"{items[0].main_name}"
-                result += f"あえて選ぶなら・・・ `{pickskillname}` かしら……。"
+            stock.append(f"```")
+            for item in items:
+                max_main_distance = item.max_main_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+                max_sub_distance = item.max_sub_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+                sum_distance = item.sum_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+                stock.append(f"{sum_distance}: {item.link_name} = [{item.main_name}({max_main_distance})], [{item.sub_name}({max_sub_distance})]")
+            stock.append(f"```")
+
+            if len(items[0].sub_name) >= 1:
+                pickskillname = f"{items[0].main_name}({items[0].sub_name})"
             else:
-                result += f"あ……。該当するスキルを見つけられなかったわ………。"
-
-            await context.send(result)
-
-        except Exception as e:
-            # エラー検知時通知
-            await self.bot.on_command_error(context, e)
+                pickskillname = f"{items[0].main_name}"
+            stock.append(f"あえて選ぶなら・・・ `{pickskillname}` かしら……。")
+        else:
+            stock.append(f"あ……。該当するスキルを見つけられなかったわ………。")
+        await self.bot.send("\n".join(stock))
 
 def setup(bot):
     bot.add_cog(CallOfCthulhuCog(bot))
