@@ -4,8 +4,9 @@ import os
 import re
 import math
 import random
+import collections
 from decimal import Decimal
-from typing import Pattern, Match
+from typing import List, Dict, Tuple, Pattern, Match
 
 import mojimoji
 
@@ -113,6 +114,122 @@ class ComparisonSeparator():
         else:
             comparison = f"{self.comparison_value}"
         return f"{self.dice_command}{self.conditional_expression}{comparison}"
+
+class NameReplacementSeparator():
+    VALID_BRACKETS_CHARACTERS = re.compile(r"([)(-+*/])", re.IGNORECASE)
+    VALID_FORMULA_CHARACTERS = re.compile(r"(\d+d\d+|[-+*/0-9\. ]+)", re.IGNORECASE)
+    VALID_DICE_CHARACTERS = re.compile(r"^((\d+)d(\d+))$", re.IGNORECASE)
+
+    def __init__(self):
+        self.command_left = ""
+        self.command_center = ""
+        self.command_right = ""
+
+        self.__need_name_replacement: bool = False
+
+        self.__brackets: List[str] = []
+        self.__evaluations: List[str] = []
+        self.__counter: collections.Counter = None
+
+    def separate(self, command: str):
+        # 記号区切り
+        split_brackets = NameReplacementSeparator.VALID_BRACKETS_CHARACTERS.split(command)
+        self.__brackets = [item for item in split_brackets if item.strip() != ""]
+        print(self.__brackets)
+
+        # 分割文字の評価
+        self.__evaluations = self.__evaluation()
+        self.__counter = collections.Counter(self.__evaluations)
+
+        # 名前置換の必要性
+        if self.__counter["C"] >= 1:
+            self.__need_name_replacement = True
+
+        # 吸着（１～３つの塊に分ける）
+        # Cが２個以上ある場合は、泥臭く組み立てる必要あり。
+        # Cに挟まれているものはすべて１つのCとみなす。
+        # Cに挟まれているLRは、直近の対応するLRまで吸着する。
+        stock_left = []
+        stock_center = []
+        stock_right = []
+        count_center = 0
+        adsorption_count_cl = 0
+        adsorption_count_cr = 0
+        for index, item in enumerate(self.__brackets):
+            if self.__evaluations[index] == "C":
+                # Cの時
+                count_center += 1
+                stock_center.append(item)
+            else:
+                # C以外の時
+                if count_center == 0:
+                    # Cにぶち当たる前
+                    stock_left.append(item)
+                elif count_center <= self.__counter["C"] - 1:
+                    # Cにぶち当たり、まだCがある中間
+                    stock_center.append(item)
+                    # Cに挟まれたLRをカウント
+                    if self.__evaluations[index] == "L":
+                        adsorption_count_cl += 1
+                        adsorption_count_cr -= 1
+                    elif self.__evaluations[index] == "R":
+                        adsorption_count_cl -= 1
+                        adsorption_count_cr += 1
+
+                    if (adsorption_count_cr >= 1):
+                        # Cに挟まれたRの数だけLを吸着
+                        for rev_index in reversed(range(0, len(stock_left))):
+                            stock_center.insert(0, stock_left.pop())
+                            if self.__evaluations[rev_index] == "L":
+                                break
+                        adsorption_count_cr -= 1
+                else:
+                    # 最後のCにぶち当たった後
+                    if (adsorption_count_cl >= 1) and (self.__evaluations[index] == "R"):
+                        # Cに挟まれたLの数だけRを吸着
+                        stock_center.append(item)
+                        adsorption_count_cl -= 1
+                    else:
+                        stock_right.append(item)
+
+        # 最後の組み立て
+        self.command_left = "".join(stock_left)
+        self.command_center = "".join(stock_center)
+        self.command_right = "".join(stock_right)
+
+    def __evaluation(self):
+        result: List[str] = []
+        for item in self.__brackets:
+            if item == "(":
+                # 括弧左
+                result.append("L")
+            elif item == ")":
+                # 括弧右
+                result.append("R")
+            elif NameReplacementSeparator.VALID_DICE_CHARACTERS.search(item):
+                # 計算可能文字（ダイスnDm文字）
+                result.append("F")
+            elif NameReplacementSeparator.VALID_FORMULA_CHARACTERS.search(item):
+                # 計算可能文字（その他）
+                result.append("F")
+            else:
+                # その他の文字（名前付き置換対象）
+                result.append("C")
+        print(result)
+        return result
+
+    def is_need_name_replacement(self) -> bool:
+        return self.__need_name_replacement
+
+    def get_replacement_name(self) -> str:
+        return self.command_center
+
+    def set_replacement_name(self, value: str):
+        self.command_center = str(value)
+
+    def get_command(self) -> str:
+        return f"{self.command_left}{self.command_center}{self.command_right}"
+
 
 class DiceCommandProcessor():
     MAX_DICE_NUMBER = 100       # ダイスの数の最大
