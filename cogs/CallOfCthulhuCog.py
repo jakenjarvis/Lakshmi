@@ -25,9 +25,12 @@ from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills
 # ;coc character info backstory <キャラID|active> 指定キャラのステータス表示（キャラ紹介）
 # ;coc character info omitted <キャラID|active> 指定キャラのステータス表示（省略）
 
+# :coc skill find スキル名を探す。
+
+# TODO: コマンドの整理。;coc add character みたいに、set、find、delete、等のキーワードが先に来ないとおかしい？
+
 # TODO:
 # :coc skill list スキル名で指定できるスキルリストの表示
-# :coc skill find スキル名を探す。
 # :coc character get skill <検索文字> 使用中キャラのスキルリスト表示
 
 # :coc character find <検索文字> キャラの検索
@@ -38,6 +41,10 @@ from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills
 # spではSANC + アイデア + 知識 + 幸運 + ポイントを振っている技能 を一覧表示させて、リアクションでダイスを降らせる
 # pではそれ以外の技能ダイスを振っていただく...とか?
 # 〇ｐで数値と文字列両方受け付けて、数値だったらパーセント、文字列だったら技能名から検索して該当するやつでダイス・・・みたいな？
+
+# sp
+# SAN:😱　アイデア:💡　幸運:🍀　知識:🧠　聞き耳:👂　図書館:📚　目星:👀
+#  + ポイントを振っている技能
 
 # TODO: embed.set_footerを試す。
 #embed.set_footer(text="Footer TEST", icon_url="https://cdn.discordapp.com/embed/avatars/0.png")
@@ -321,6 +328,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
         if len(items) >= 1:
             stock.append(f"…ん。{character.character_name}さんのスキルから `{keyword}` をあいまい検索した結果は、次の `{len(items)}件` よ……。")
 
+            #TODO: 件数が多すぎると2000文字を超えるので、出力件数を制限する。
             stock.append(f"```")
             for item in items:
                 max_main_distance = item.max_main_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
@@ -333,8 +341,8 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 pickskillname = f"{items[0].main_name}({items[0].sub_name})"
             else:
                 pickskillname = f"{items[0].main_name}"
-            # TODO: 結果表示にスキル値を入れる
-            stock.append(f"あえて選ぶなら・・・ `{pickskillname}` かしら……。")
+            pickskillvalue = items[0].skill_current_value
+            stock.append(f"あえて選ぶなら・・・ `{pickskillname}`:(`{pickskillvalue}`) かしら……。")
         else:
             stock.append(f"あ……。該当するスキルを見つけられなかったわ………。")
         await self.bot.send("\n".join(stock))

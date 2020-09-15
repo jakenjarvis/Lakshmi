@@ -294,6 +294,7 @@ class OperatorSymbolReplacer(ReplacerBase):
 
     # overwride
     def replace_formula(self, separator: FormulaSeparator):
+        #TODO: 全角の四則演算記号を半角に変換する処理をcalculation側に入れる。
         separator.calculation_formula_left = separator.calculation_formula_left
         separator.calculation_formula_center = separator.calculation_formula_center
         separator.calculation_formula_right = separator.calculation_formula_right
