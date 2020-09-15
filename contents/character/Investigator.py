@@ -51,6 +51,9 @@ class AbilitySet:
         self.current = current
         return self
 
+    def get_fullname(self):
+        return f"{self.ability_name}"
+
     def to_display_string(self):
         return f"{self.ability_name}: {self.current}"
 
@@ -83,13 +86,16 @@ class SkillSet():
         self.current = current
         return self
 
-    def to_display_string(self):
+    def get_fullname(self):
         result = ""
         if len(self.skill_subname.strip()) >= 1:
-            result = f"{self.skill_name}({self.skill_subname}): {self.current}"
+            result = f"{self.skill_name}({self.skill_subname})"
         else:
-            result = f"{self.skill_name}: {self.current}"
+            result = f"{self.skill_name}"
         return result
+
+    def to_display_string(self):
+        return f"{self.get_fullname()}: {self.current}"
 
 # 技能ポイント
 @dataclass

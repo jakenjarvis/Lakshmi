@@ -29,14 +29,14 @@ class MultilineBot(commands.Bot):
         if message.author.bot:
             return
 
+        # Backup original content
+        # その都度インスタンスを生成することにする。
+        self.__message_stocker = MessageAccumulation(self, message)
+
         # 書き換え
         if message.content.startswith(self.command_prefix):
             # 先頭がcommand_prefixの時のみ改変処理を行う。
             # コマンド処理に差支えが無い範囲で、文字列加工を行う事。
-
-            # Backup original content
-            # その都度インスタンスを生成することにする。
-            self.__message_stocker = MessageAccumulation(self, message)
 
             # コマンド相当文字の全角半角変換
             zen_to_han_command_line = self.regex_command.sub(
@@ -177,6 +177,7 @@ class MessageAccumulation():
     async def __send_join(self, id: int, texts: List[str]):
         #print("__send_join")
         # TODO: 意図的に実行するケースとしないケースを分けたい。
+        # TODO: 消費したメッセージをPOPとかして取り出さないと２重送信してしまう。
         message = "🃴".join("🃴".join(texts).splitlines())
         if f'{self.context.author.mention}' in message:
             message = f"{self.context.author.mention}🃴{message.replace(f'{self.context.author.mention}','')}"
