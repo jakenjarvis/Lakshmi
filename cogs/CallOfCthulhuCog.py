@@ -333,6 +333,7 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
                 pickskillname = f"{items[0].main_name}({items[0].sub_name})"
             else:
                 pickskillname = f"{items[0].main_name}"
+            # TODO: 結果表示にスキル値を入れる
             stock.append(f"あえて選ぶなら・・・ `{pickskillname}` かしら……。")
         else:
             stock.append(f"あ……。該当するスキルを見つけられなかったわ………。")

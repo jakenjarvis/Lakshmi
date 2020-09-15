@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from typing import List, Dict, Tuple, Pattern, Match, Type
+
 from discord.ext import commands
 
 import mojimoji
 
 import LakshmiErrors
-import MultilineBot
 from contents.dice.DiceCommandProcessor import InvalidFormulaException, ArgumentOutOfRangeException, InvalidCharacterException
 from contents.dice.CallOfCthulhuDice import CallOfCthulhuDice
+from contents.dice.SkillNameReplacer import SkillNameReplacer
 from contents.FuzzySearchInvestigatorSkills import FuzzySearchInvestigatorSkills, SearchResult
 from contents.character.CharacterManager import CharacterManager
 
@@ -33,47 +35,30 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
 
         try:
             dice = CallOfCthulhuDice()
+            dice.append_replacer_types(SkillNameReplacer,
+                bot=self.bot,
+                manager=self.manager,
+                character=character,
+                search_skills=search_skills,
+                processor=dice,
+                )
 
-            comment_separator = dice.get_comment_separator().separate(command)
-            #print(comment_separator.command_line)
-            #print(comment_separator.comment)
+            dice.comment_separator.separate(command)
 
-            comparison_separator = dice.get_comparison_separator().separate(comment_separator.command_line)
-            #print(comparison_separator.comparison_name)
-            #print(comparison_separator.comparison_value)
+            skill_name_command = dice.comment_separator.expression_formula
+            new_command = f"1d100<={skill_name_command}"
+            dice.comment_separator.expression_formula = new_command
 
-            command_string = comparison_separator.dice_command
-            print(f"command_string: {command_string}")
+            dice.execute_evaluation_expression()
+            dice.execute_replacers()
+            dice.execute_calculate()
 
-            name = ""
-            value = 0
+            skill_name_replacers: List[SkillNameReplacer] = dice.find_replacers(SkillNameReplacer)
+            for replacer in skill_name_replacers:
+                if len(replacer.skill_name) >= 1:
+                    stock.append(f"…ん。{character.character_name}さんのスキル `{replacer.skill_name}` は `{replacer.skill_value}` よ……。")
 
-            # 文字列指定
-            # アクティブキャラのスキルあいまい検索
-            find_string = mojimoji.han_to_zen(command_string)
-            items = search_skills.search(find_string)
-            if len(items) >= 1:
-                # 該当スキルが見つかった。
-                search_result: SearchResult = items[0]
-                if len(search_result.sub_name) >= 1:
-                    pickskillname = f"{search_result.main_name}({search_result.sub_name})"
-                else:
-                    pickskillname = f"{search_result.main_name}"
-
-                name = pickskillname
-                value = search_skills.get_skill_value(search_result.link_name)
-
-                stock.append(f"…ん。{character.character_name}さんのスキル `{pickskillname}` は `{value}` よ……。")
-            else:
-                name = command_string
-                value = int(dice.execute_eval(command_string))
-
-            comparison_separator.set_dice_command("1d100")
-            comparison_separator.set_conditional_expression("<=")
-            comparison_separator.set_comparison_name(name)
-            comparison_separator.set_comparison_value(value)
-
-            roll_result = dice.dice_command_roll()
+            roll_result = dice.generate_dice_result_string()
             stock.append(f'{roll_result}')
 
         except InvalidFormulaException as e:
