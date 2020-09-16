@@ -16,15 +16,17 @@ class ArgumentOutOfRangeException(ChoiceReactionFlowException):
 
 class ChoiceReactionFlow():
     # Discord API Max 20
-    CHOICE_EMOJIS = itertools.cycle([
+    CHOICE_EMOJIS = [
         "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
         "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", # 12 Zodiac Emoji
-        ])
+        ]
 
     def __init__(self, bot: commands.Bot, context: commands.Context):
         self.bot: commands.Bot = bot
         self.context: commands.Context = context
         self.bot_message: discord.Message = None
+
+        self.iter_emojis = itertools.cycle(ChoiceReactionFlow.CHOICE_EMOJIS)
 
         self.datastore: OrderedDict[str, Dict[str, any]] = {}
         self.used_emojis: List[str] = []
@@ -34,7 +36,7 @@ class ChoiceReactionFlow():
         self.choice_emoji = None
 
     def pick_next_emojis(self) -> str:
-        return next(ChoiceReactionFlow.CHOICE_EMOJIS)
+        return next(self.iter_emojis)
 
     def append_datastore(self, emoji, keyword="", **kwargs):
         if len(self.used_emojis) >= 20:
