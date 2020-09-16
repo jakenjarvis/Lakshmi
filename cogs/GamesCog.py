@@ -20,8 +20,10 @@ class GamesCog(commands.Cog, name='ゲーム系'):
     @game.command(aliases=['highlow','hl'])
     async def highandlow(self, context: commands.Context):
         """ゲーム「High and Low」でLakshmiと遊びます。"""
+        await self.bot.change_presence(activity=discord.Game(name='High and Low'))
         game = GameHighAndLow(self.bot)
         await game.high_and_low(context)
+        await self.bot.change_presence(activity=None)
 
 def setup(bot):
     bot.add_cog(GamesCog(bot))
