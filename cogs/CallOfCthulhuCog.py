@@ -146,40 +146,34 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
     async def character_choice(self, context: commands.Context):
         """ アクティブなキャラクターを選択したキャラクターに切り替えます。 """
         stock = []
-        # max 30
-        master_emojis = [
-            "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
-            "☮️", "✝️", "☪️", "🕉", "☸️", "✡️", "☯️", "☦️", "♈️", "♉️",
-            "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"
-            ]
-        used_emojis = []
+
+        flow = ChoiceReactionFlow(self.bot, context)
 
         author_name = str(context.author.name)
         display_name = str(context.author.display_name)
 
         records = await self.manager.get_character_list(context)
         if len(records) >= 1:
-            index = 0
+            for record in records:
+                emoji = flow.pick_next_emojis()
+                flow.append_datastore(emoji, display=f"{record.to_display_string()}")
 
             first_send = f""
             first_send += f"…ん。あなたの登録キャラクターは次の `{len(records)}人` よ……。"
             first_send += f"\n"
             first_send += f"```"
-            for record in records:
-                first_send += f" {master_emojis[index]} {record.to_display_string()}\n"
-                used_emojis.append(master_emojis[index])
-                index += 1
+            for key, data in flow.datastore.items():
+                first_send += f" {data['emoji']} {data['display']}\n"
             first_send += f"```"
             first_send += f"どの子にするの？……切り替えるキャラクターを `30秒以内` に選んで頂戴……。"
 
             bot_message = await context.send(first_send) # ここでself.bot.sendは使えない。
 
-            flow = ChoiceReactionFlow(self.bot, context)
-            flow.set_target_message(bot_message, used_emojis)
+            flow.set_target_message(bot_message)
 
             emoji = await flow.wait_for_choice_reaction(timeout=30)
             if emoji:
-                chosed_index = used_emojis.index(emoji)
+                chosed_index = flow.get_chosed_emoji_index()
                 chosed_character = records[chosed_index]
 
                 unique_id = chosed_character.unique_id
@@ -326,11 +320,18 @@ class CallOfCthulhuCog(commands.Cog, name='CoC-TRPG系'):
 
         items = search_skills.search(keyword)
         if len(items) >= 1:
-            stock.append(f"…ん。{character.character_name}さんのスキルから `{keyword}` をあいまい検索した結果は、次の `{len(items)}件` よ……。")
+            stock.append(f"…ん。{character.character_name}さんのスキルから `{keyword}` をあいまい検索した結果は、`{len(items)}件` よ……。")
 
-            #TODO: 件数が多すぎると2000文字を超えるので、出力件数を制限する。
+            # NOTE: 件数が多すぎると2000文字を超えるので、出力件数を制限する。20件を最大とする。
+            preview_count = len(items)
+            if preview_count >= 20:
+                preview_count = 20
+                stock.append(f"…あ。多すぎるから{preview_count}件だけ、表示するわよ……。")
+
             stock.append(f"```")
-            for item in items:
+            #for item in items:
+            for index in range(preview_count):
+                item = items[index]
                 max_main_distance = item.max_main_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
                 max_sub_distance = item.max_sub_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
                 sum_distance = item.sum_distance.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)

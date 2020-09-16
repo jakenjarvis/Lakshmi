@@ -55,9 +55,11 @@ class CharacterManager():
 
         if use_cache:
             # キャッシュを返却
+            #print(f"request cache: {site_url}")
             result = copy.deepcopy(cache_investigator)
         else:
             # サイト取得
+            #print(f"request get: {site_url}")
             getter = self.__get_instance_of_getter(site_url)
             if not getter:
                 raise LakshmiErrors.UnsupportedSitesException()

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import re
-from typing import List, Dict, Tuple
+from collections import deque
+from typing import List, Dict, Tuple, Deque, Union
 
 import mojimoji
 
@@ -88,28 +89,28 @@ class MultilineBot(commands.Bot):
 
     @property
     def author(self):
-        self.__message_stocker.set_target_id(self.__message_stocker.context.author.id)
+        self.__message_stocker.set_target(self.__message_stocker.context.author)
         return self.__message_stocker
 
     async def send(self, content=None, *, tts=False, embed=None, file=None,
                                           files=None, delete_after=None, nonce=None,
                                           allowed_mentions=None):
-        self.__message_stocker.set_target_id(self.__message_stocker.context.channel.id)
-        return await self.__message_stocker.stock_send(content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions)
-
+        self.__message_stocker.set_target(self.__message_stocker.context.channel)
+        return self.__message_stocker.append_queue(content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions)
 
 class MessageAccumulation():
     def __init__(self, bot: MultilineBot, message: discord.Message):
         self.bot = bot
         self.message = message
 
-        self.stock: Dict[int, List[Tuple[any, any]]] = {}
+        #self.stock: Dict[int, Deque[Tuple[any, any]]] = {}
+        self.__queue: Deque[Tuple[any, str, any, any]] = deque([]) # target, mention, args, kwargs
 
         self.__original_content = message.content
         print("--Original message:\n" + self.__original_content)
 
         self.__last_context: commands.Context = None
-        self.__last_send_target_id: int = 0
+        self.__last_send_target: Union[discord.TextChannel, discord.User] = None
 
     @property
     def original_content(self):
@@ -122,46 +123,63 @@ class MessageAccumulation():
     def set_last_context(self, context: commands.Context):
         self.__last_context = context
 
-    def set_target_id(self, id: int):
-        self.__last_send_target_id = id
-        if not self.__last_send_target_id in self.stock:
-            self.stock[self.__last_send_target_id] = []
+    def set_target(self, target: Union[discord.TextChannel, discord.User]):
+        self.__last_send_target = target
 
     async def send(self, content=None, *, tts=False, embed=None, file=None,
                                           files=None, delete_after=None, nonce=None,
                                           allowed_mentions=None):
-        await self.stock_send(content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions)
+        self.append_queue(content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions)
 
-    async def stock_send(self, *args, **kwargs):
-        #print("stock_send")
-        self.stock[self.__last_send_target_id].append((args, kwargs))
+    def append_queue(self, *args, **kwargs): # This is not async.
+        #print("send_stock")
+        mention = f'{self.__last_context.author.mention}'
+        self.__queue.append((self.__last_send_target, mention, args, kwargs)) # target, mention, args, kwargs
 
     async def release_send(self):
         #print("release_send")
-        for id in self.stock.keys():
-            texts = []
-            for params in self.stock[id]:
-                args = params[0]
-                kwargs = params[1]
-                #print(f"params = args: {args}, kwargs: {kwargs}")
 
-                if self.is_send_kwargs(kwargs):
-                    # テキスト以外の送信分は、個別にSendする。
-                    if len(texts) >= 1:
-                        # ストックメッセージがあるなら送信する。
-                        await self.__send_join(id, texts)
-                        texts = []
-                    # メッセージ送信
-                    await self.__send(id, *args, **kwargs)
+        to_be_send: Deque[Tuple[any, str, any, any]] = deque([]) # target, mention, args, kwargs
+        texts = []
 
+        last_status = (None, None)
+        while 0 < len(self.__queue):
+            params = self.__queue.popleft()
+            target = params[0]
+            mention = params[1]
+            args = params[2]
+            kwargs = params[3]
+            #print(f"params = target: {target}, mention: {mention}, args: {args}, kwargs: {kwargs}")
+
+            if self.is_send_kwargs(kwargs):
+                # テキスト以外の送信分は、個別にSendする。
+                #print(f"個別: {params}")
+                to_be_send.append(params)
+                last_status = (None, None)
+            else:
+                # テキストのみの送信の場合は、可能であれば集約する。
+                content = str(args[0])
+                if last_status != (target, mention):
+                    #print(f"新規: {params}")
+                    last_status = (target, mention)
+                    texts = []
+                    texts.append(content)
+                    to_be_send.append(params)
                 else:
-                    if len(args) >= 1:
-                        texts.append(args[0])
+                    #print(f"集約: {params}")
+                    texts.append(content.replace(mention, "").strip()) # メンションを削除して追加
+                    # 一旦取り出して再構築
+                    last_params = to_be_send.pop()
+                    to_be_send.append((last_params[0], last_params[1], ('\n'.join(texts),), last_params[3]))
 
-            if len(texts) >= 1:
-                # ストックメッセージがあるなら送信する。
-                await self.__send_join(id, texts)
-                texts = []
+        while 0 < len(to_be_send):
+            # ストックメッセージがあるなら送信する。
+            params = to_be_send.popleft()
+            target = params[0]
+            mention = params[1]
+            args = params[2]
+            kwargs = params[3]
+            await self.__send(target.id, *args, **kwargs)
 
     def is_send_kwargs(self, kwargs: Dict[str, any]):
         return not all([
@@ -173,16 +191,6 @@ class MessageAccumulation():
             kwargs['nonce'] is None,
             kwargs['allowed_mentions'] is None
         ])
-
-    async def __send_join(self, id: int, texts: List[str]):
-        #print("__send_join")
-        # TODO: 意図的に実行するケースとしないケースを分けたい。
-        # TODO: 消費したメッセージをPOPとかして取り出さないと２重送信してしまう。
-        message = "🃴".join("🃴".join(texts).splitlines())
-        if f'{self.context.author.mention}' in message:
-            message = f"{self.context.author.mention}🃴{message.replace(f'{self.context.author.mention}','')}"
-        message = '\n'.join([item for item in message.replace('🃴', '\n').splitlines() if item != ""])
-        await self.__send(id, message)
 
     async def __send(self, id: int, *args, **kwargs):
         #print("__send")

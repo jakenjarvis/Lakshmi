@@ -217,7 +217,7 @@ class FormulaSeparator():
 
 class ReplacerBase():
     def __init__(self, **kwargs):
-        pass
+        self.side: str = kwargs.get("__side", "")
 
     def replace_comparison_operator(self, separator: EvaluationExpressionSeparator):
         raise NotImplementedError()
@@ -280,6 +280,10 @@ class OperatorSymbolReplacer(ReplacerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def __replace_calculation_string(self, text: str) -> str:
+        return text.replace('＋','+').replace('－','-') \
+            .replace('＊','*').replace('／','/').replace('×','*').replace('÷','/')
+
     def __replace_display_string(self, text: str) -> str:
         return text.replace('+','＋').replace('-','－').replace('*','×').replace('/','÷') \
             .replace('>=','≧').replace('<=','≦').replace('>','＞').replace('<','＜')
@@ -294,10 +298,9 @@ class OperatorSymbolReplacer(ReplacerBase):
 
     # overwride
     def replace_formula(self, separator: FormulaSeparator):
-        #TODO: 全角の四則演算記号を半角に変換する処理をcalculation側に入れる。
-        separator.calculation_formula_left = separator.calculation_formula_left
+        separator.calculation_formula_left = self.__replace_calculation_string(separator.calculation_formula_left)
         separator.calculation_formula_center = separator.calculation_formula_center
-        separator.calculation_formula_right = separator.calculation_formula_right
+        separator.calculation_formula_right = self.__replace_calculation_string(separator.calculation_formula_right)
         separator.display_formula_left = self.__replace_display_string(separator.display_formula_left)
         separator.display_formula_center = separator.display_formula_center
         separator.display_formula_right = self.__replace_display_string(separator.display_formula_right)
@@ -323,9 +326,11 @@ class FormulaCalculator(CalculatorBase):
     def __init__(self):
         super().__init__()
         self.total: int = 0
+        self.formula = ""
 
     def calculate_formula(self, formula: str) -> int:
-        self.total = math.ceil(self.execute_eval(formula)) # 小数点切り上げ
+        self.formula = formula
+        self.total = math.ceil(self.execute_eval(self.formula)) # 小数点切り上げ
         return self
 
 class EvaluationExpressionCalculator(CalculatorBase):
@@ -338,6 +343,8 @@ class EvaluationExpressionCalculator(CalculatorBase):
         return self
 
 class DiceCommandProcessor():
+    VALID_FOUR_ARITHMETIC_OPERATIONS = re.compile(r"([-+*/]+)", re.IGNORECASE)
+
     def __init__(self):
         self.__result: str = ""
 
@@ -410,9 +417,11 @@ class DiceCommandProcessor():
             # Left and Right
             for replacer, kwargs in self.replacer_types:
                 # 新しいインスタンスを生成して実行
+                kwargs["__side"] = "left"
                 temp_replacer = self.create_replacer(replacer, **kwargs)
                 temp_replacer.replace_formula(self.left_formula_separator)
 
+                kwargs["__side"] = "right"
                 temp_replacer = self.create_replacer(replacer, **kwargs)
                 temp_replacer.replace_formula(self.right_formula_separator)
 
@@ -424,6 +433,7 @@ class DiceCommandProcessor():
             # Left only
             for replacer, kwargs in self.replacer_types:
                 # 新しいインスタンスを生成して実行
+                kwargs["__side"] = "left"
                 temp_replacer = self.create_replacer(replacer, **kwargs)
                 temp_replacer.replace_formula(self.left_formula_separator)
         return self
@@ -485,21 +495,35 @@ class DiceCommandProcessor():
 
         # 使用ダイスリストの作成
         all_dice_stock: List[Tuple[str,str]] = []
+        target_dice_side = ""
         for temp_replacer in self.replacers:
             if type(temp_replacer) is DiceReplacer:
                 all_dice_stock.extend(temp_replacer.dice_stock)
+                if len(temp_replacer.dice_stock) == 1:
+                    target_dice_side = temp_replacer.side
         #print(all_dice_stock)
 
-        # クリティカル判定（D100のみ）
+        # クリティカル判定
+        # ダイス置換処理が左辺右辺あわせて１回のみ
         if len(all_dice_stock) == 1:
             dice_command = all_dice_stock[0][0]
             dice_result = all_dice_stock[0][1]
-            # 1D100 only
+            # かつ、1D100のみ
             if dice_command == "1d100":
-                if int(dice_result) <= 5:
-                    critical = "【 Critical! 】"
-                elif int(dice_result) >= 96:
-                    critical = "【  Fumble!  】"
+                # かつ、最終計算時に四則演算記号が無ければ対象とする。
+                calculation_check = ""
+                if target_dice_side == "left":
+                    calculation_check = f"{self.left_formula_calculator.formula}"
+                    #print(f"calculation_check L: {calculation_check}")
+                elif target_dice_side == "right":
+                    calculation_check = f"{self.right_formula_calculator.formula}"
+                    #print(f"calculation_check R: {calculation_check}")
+                if not DiceCommandProcessor.VALID_FOUR_ARITHMETIC_OPERATIONS.search(calculation_check):
+                    #print("クリティカル評価対象")
+                    if int(dice_result) <= 5:
+                        critical = "【 Critical! 】"
+                    elif int(dice_result) >= 96:
+                        critical = "【  Fumble!  】"
 
         left_display_formula = self.left_formula_separator.get_display_formula()
         right_display_formula = self.right_formula_separator.get_display_formula()
