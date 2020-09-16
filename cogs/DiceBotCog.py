@@ -152,18 +152,8 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         """アクティブキャラのスキルを参照して選択したダイスを振ります。(skill percent)"""
         # SAN:😱　アイデア:💡　幸運:🍀　知識:🧠　聞き耳:👂　図書館:📚　目星:👀
         stock = []
-        #TODO: DiscordのMAXは20だった。
-        # max 30
-        master_emojis = [
-            "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
-            "☮️", "✝️", "☪️", "🕉", "☸️", "✡️", "☯️", "☦️", "♈️", "♉️",
-            "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️",
-            "😱","💡","🍀","🧠","👂","📚","👀",
-            ]
-        used_emojis = []
-        keywords = {}
-        database = []
-        emoji_index = 0
+
+        flow = ChoiceReactionFlow(self.bot, context)
 
         author_name = str(context.author.name)
         display_name = str(context.author.display_name)
@@ -171,28 +161,19 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         character = await self.manager.get_character_information(context, "")
 
         # 陳列するスキルの一覧を作成する。
-        def add_item(keyword, skill_name, skill_value, emoji, display):
-            data = {
-                "keyword" : str(keyword),
-                "skill_name" : str(skill_name),
-                "skill_value" : str(skill_value),
-                "emoji" : str(emoji),
-                "display" : str(display),
-            }
-            keywords[str(keyword)] = data
-            database.append(data)
-            used_emojis.append(emoji)
-
         def add_skills(target, keyword, emoji):
-            add_item(keyword,
-                target[keyword].get_fullname(),
-                f"{target[keyword].current}",
-                emoji,
-                target[keyword].to_display_string()
+            flow.append_datastore(emoji, keyword,
+                skill_name=target[keyword].get_fullname(),
+                skill_value=f"{target[keyword].current}",
+                display=target[keyword].to_display_string()
                 )
 
         # 固定アイテム
-        add_item("sanity_points", "SAN", f"{character.sanity_points.current}", "😱", f"SAN: {character.sanity_points.current}")
+        flow.append_datastore("😱", "sanity_points",
+            skill_name="SAN",
+            skill_value=f"{character.sanity_points.current}",
+            display=f"SAN: {character.sanity_points.current}"
+            )
         add_skills(character.characteristics, "idea", "💡")
         add_skills(character.characteristics, "luck", "🍀")
         add_skills(character.characteristics, "knowledge", "🧠")
@@ -200,34 +181,23 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
         add_skills(character.search_skills, "library_use", "📚")
         add_skills(character.search_skills, "spot_hidden", "👀")
 
-        targets = [character.combat_skills, character.search_skills, character.behavioral_skills, character.negotiation_skills, character.knowledge_skills]
-        for target in targets:
-            for key in target.keys():
-                if target[key].base != target[key].current:
-                    if not key in keywords:
-                        pick_emoji = master_emojis[emoji_index]
-                        add_skills(target, key, pick_emoji)
-                        emoji_index += 1
-
         first_send = f""
         first_send += f"…ん。{character.character_name}さんの、どのスキルでダイスを振るのか決めて……。"
         first_send += f"\n"
-        #first_send += f"```"
-        for data in database:
+        first_send += f"```"
+        for key, data in flow.datastore.items():
             first_send += f"{data['emoji']} {data['display']}　"
-        #first_send += f"```"
+        first_send += f"```"
         first_send += f"\n"
         first_send += f"どのスキルにするの？…… `30秒以内` に選んで頂戴……。"
 
         bot_message = await context.send(first_send) # ここでself.bot.sendは使えない。
 
-        flow = ChoiceReactionFlow(self.bot, context)
-        flow.set_target_message(bot_message, used_emojis)
+        flow.set_target_message(bot_message)
 
         emoji = await flow.wait_for_choice_reaction(timeout=30)
         if emoji:
-            chosed_index = used_emojis.index(emoji)
-            chosed_data = database[chosed_index]
+            chosed_data = flow.get_chosed_datastore()
             skill_name = chosed_data["skill_name"]
             skill_value = chosed_data["skill_value"]
 
@@ -235,7 +205,6 @@ class DiceBotCog(commands.Cog, name='ダイス系'):
             await self.bot.send("\n".join(stock))
 
             p_command = f"{skill_value} #{emoji}{skill_name}"
-            print(f"p_command: {p_command}")
             await self.p(context, command=p_command)
         else:
             stock.append(f'時間切れよ………{context.author.display_name}さんは優柔不断ね……。')

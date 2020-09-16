@@ -12,10 +12,6 @@ from contents.character.Investigator import Investigator
 class CharactersSheetController():
     def __init__(self, pandasheet: LakshmiCharactersSheet):
         self.pandasheet = pandasheet
-        # TODO: 最後にロードしてから時間が経ってたら、再ロードする？⇒必要なさそう。
-        # TODO: セーブロードのコントロール方法について検討
-        # TODO: gspread-pandasのブロッキングが酷いので、gspread_asyncioを使うべき？（足回りを作りこむ必要がある）gspread_asyncio_pandasを誰か作って・・・。
-        #sheet.load()
 
     @property
     def df(self):

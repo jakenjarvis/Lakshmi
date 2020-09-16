@@ -1,23 +1,64 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from typing import List, Dict, Callable
-
+from collections import OrderedDict
+import itertools
 import asyncio
 
 import discord
 from discord.ext import commands, tasks
 
+class ChoiceReactionFlowException(Exception):
+    pass
+
+class ArgumentOutOfRangeException(ChoiceReactionFlowException):
+    pass
+
 class ChoiceReactionFlow():
+    # Discord API Max 20
+    CHOICE_EMOJIS = [
+        "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣",
+        "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", # 12 Zodiac Emoji
+        ]
+
     def __init__(self, bot: commands.Bot, context: commands.Context):
         self.bot: commands.Bot = bot
         self.context: commands.Context = context
         self.bot_message: discord.Message = None
-        self.used_emojis: List[str] = None
+
+        self.iter_emojis = itertools.cycle(ChoiceReactionFlow.CHOICE_EMOJIS)
+
+        self.datastore: OrderedDict[str, Dict[str, any]] = {}
+        self.used_emojis: List[str] = []
+
         self.index: int = 0
 
-    def set_target_message(self, bot_message: discord.Message, used_emojis: List[str]):
+        self.choice_emoji = None
+
+    def pick_next_emojis(self) -> str:
+        return next(self.iter_emojis)
+
+    def append_datastore(self, emoji, keyword="", **kwargs):
+        if len(self.used_emojis) >= 20:
+            raise ArgumentOutOfRangeException
+
+        kwargs["key"] = str(keyword if len(keyword) >= 1 else emoji)
+        kwargs["emoji"] = emoji
+        kwargs["keyword"] = keyword
+        # Duplicate check
+        self.datastore[kwargs["key"]] = kwargs
+        self.used_emojis.append(emoji)
+        return self
+
+    def get_chosed_datastore(self) -> Dict[str, any]:
+        chosed_index = self.get_chosed_emoji_index()
+        return list(self.datastore.items())[chosed_index][1]
+
+    def get_chosed_emoji_index(self) -> int:
+        return self.used_emojis.index(self.choice_emoji)
+
+    def set_target_message(self, bot_message: discord.Message):
         self.bot_message = bot_message
-        self.used_emojis = used_emojis
         return self
 
     def check_choice_reaction_by_author_only(self) -> Callable[[discord.Reaction, discord.Member], bool]:
@@ -46,23 +87,22 @@ class ChoiceReactionFlow():
         #print(f"reaction_appender: start")
         self.reaction_appender.start()
 
-        choice_emoji = None
         try:
             #print(f"wait_for: start")
             reaction, member = await self.bot.wait_for(
                 'reaction_add', check=check, timeout=timeout
             )
             #print(f"wait_for: end")
-            choice_emoji = reaction.emoji
+            self.choice_emoji = reaction.emoji
         except asyncio.TimeoutError:
-            choice_emoji = None
+            self.choice_emoji = None
 
         if cancel:
             #print(f"reaction_appender: cancel")
             self.reaction_appender.cancel()
 
         #print(f"choice_emoji: {choice_emoji}")
-        return choice_emoji
+        return self.choice_emoji
 
     @tasks.loop()
     async def reaction_appender(self):

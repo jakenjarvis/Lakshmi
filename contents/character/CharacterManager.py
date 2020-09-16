@@ -9,7 +9,7 @@ import datetime
 import pytz
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import LakshmiErrors
 from contents.character.Investigator import Investigator
@@ -55,9 +55,11 @@ class CharacterManager():
 
         if use_cache:
             # キャッシュを返却
+            #print(f"request cache: {site_url}")
             result = copy.deepcopy(cache_investigator)
         else:
             # サイト取得
+            #print(f"request get: {site_url}")
             getter = self.__get_instance_of_getter(site_url)
             if not getter:
                 raise LakshmiErrors.UnsupportedSitesException()
@@ -70,13 +72,18 @@ class CharacterManager():
     async def background_save(self):
         if not self.save_flag:
             self.save_flag = True
-            self.bot.loop.create_task(self.__background_save_task())
+            await self.bot.change_presence(activity=discord.Activity(name='記録', type=discord.ActivityType.watching))
+            self.__background_save_task.start()
 
+    @tasks.loop(count=1, seconds=3)
     async def __background_save_task(self):
-        await asyncio.sleep(3)
-        await self.bot.wait_until_ready()
+        # TODO: gspread-pandasのブロッキングが酷いので、gspread_asyncioを使うべき？
+        # TODO: （足回りを作りこむ必要がある）gspread_asyncio_pandasを誰か作って・・・。
+        #await asyncio.sleep(3)
+        #await self.bot.wait_until_ready()
         self.__sheet_controller.save()
         self.save_flag = False
+        await self.bot.change_presence(activity=None)
 
     async def is_image_url(self, url: str) -> bool:
         result = False
