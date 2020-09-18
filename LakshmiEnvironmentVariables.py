@@ -58,3 +58,15 @@ class LakshmiEnvironmentVariables():
             path = os.path.abspath(os.path.join(self.__basepath, r"spreadsheet-id.txt"))
             result = TextFileManager(path).load()
         return result
+
+    def get_person_name_api_url(self):
+        # person_name_api URL
+        result = ""
+        try:
+            # Heroku環境
+            result = os.environ['PERSON_NAME_API_URL']
+        except Exception as e:
+            # ローカル環境
+            path = os.path.abspath(os.path.join(self.__basepath, r"person_name_api-url.txt"))
+            result = TextFileManager(path).load()
+        return result

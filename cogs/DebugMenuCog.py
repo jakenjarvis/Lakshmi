@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union
 import asyncio
+import aiohttp
 
 import discord
 from discord.ext import commands, menus
@@ -44,6 +45,34 @@ class DebugMenuCog(commands.Cog, name='Debug開発系'):
         pages = menus.MenuPages(source=AsyncIteratorSource(), clear_reactions_after=True)
         await pages.start(context)
 
+    @debug.group()
+    async def name(self, context: commands.Context):
+        if context.invoked_subcommand is None:
+            raise LakshmiErrors.SubcommandNotFoundException()
+
+    @name.command(aliases=['m'])
+    async def male(self, context: commands.Context):
+        stock = []
+        name = await self.generate_name(context, "male")
+        stock.append(f'{name}')
+        await self.bot.send("\n".join(stock))
+
+    @name.command(aliases=['f'])
+    async def female(self, context: commands.Context):
+        stock = []
+        name = await self.generate_name(context, "female")
+        stock.append(f'{name}')
+        await self.bot.send("\n".join(stock))
+
+    async def generate_name(self, context: commands.Context, gender: str):
+        data = ""
+        request_url = self.bot.storage.environment.get_person_name_api_url()
+        params = {"gender": f"{gender}"}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(request_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+        return f'{data["kanji_name"]}({data["kana_name"]})'
 
 # --------------------------------------------------
 #
