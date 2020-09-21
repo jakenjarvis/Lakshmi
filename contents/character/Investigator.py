@@ -429,77 +429,15 @@ class Investigator:
             abilityset = self.characteristics[key]
             abilityset.calculate()
 
-        # スキル初期値の再計算
-        # 戦闘技能
-        self.combat_skills["dodge"].base = self.DEX * 2                     # 回避
-        self.combat_skills["kick"].base = 25                                # キック
-        self.combat_skills["grapple"].base = 25                             # 組み付き
-        self.combat_skills["fist_punch"].base = 50                          # こぶし(パンチ)
-        self.combat_skills["head_butt"].base = 10                           # 頭突き
-        self.combat_skills["throw"].base = 25                               # 投擲
-        self.combat_skills["martial_arts"].base = 1                         # マーシャルアーツ
-        self.combat_skills["handgun"].base = 20                             # 拳銃
-        self.combat_skills["smg"].base = 15                                 # サブマシンガン
-        self.combat_skills["shotgun"].base = 30                             # ショットガン
-        self.combat_skills["machine_gun"].base = 15                         # マシンガン
-        self.combat_skills["rifle"].base = 25                               # ライフル
-        # 探索技能
-        self.search_skills["first_aid"].base = 30                           # 応急手当
-        self.search_skills["locksmith"].base = 1                            # 鍵開け
-        self.search_skills["conceal"].base = 15                             # 隠す
-        self.search_skills["hide"].base = 10                                # 隠れる
-        self.search_skills["listen"].base = 25                              # 聞き耳
-        self.search_skills["sneak"].base = 10                               # 忍び歩き
-        self.search_skills["photography"].base = 10                         # 写真術
-        self.search_skills["psychoanalysis"].base = 1                       # 精神分析
-        self.search_skills["track"].base = 10                               # 追跡
-        self.search_skills["climb"].base = 40                               # 登攀
-        self.search_skills["library_use"].base = 25                         # 図書館
-        self.search_skills["spot_hidden"].base = 25                         # 目星
-        # 行動技能
-        self.behavioral_skills["drive"].base = 20                           # 運転
-        self.behavioral_skills["mech_repair"].base = 20                     # 機械修理
-        self.behavioral_skills["opr_hvy_machine"].base = 1                  # 重機械操作
-        self.behavioral_skills["ride"].base = 5                             # 乗馬
-        self.behavioral_skills["swim"].base = 25                            # 水泳
-        self.behavioral_skills["craft"].base = 5                            # 製作
-        self.behavioral_skills["pilot"].base = 1                            # 操縦
-        self.behavioral_skills["jump"].base = 25                            # 跳躍
-        self.behavioral_skills["electr_repair"].base = 10                   # 電気修理
-        self.behavioral_skills["navigate"].base = 10                        # ナビゲート
-        self.behavioral_skills["disguise"].base = 1                         # 変装
-        # 交渉技能
-        self.negotiation_skills["fast_talk"].base = 5                       # 言いくるめ
-        self.negotiation_skills["credit_rating"].base = 15                  # 信用
-        self.negotiation_skills["persuade"].base = 15                       # 説得
-        self.negotiation_skills["bargain"].base = 5                         # 値切り
-        self.negotiation_skills["own_language"].base = self.EDU * 5         # 母国語
-        # 知識技能
-        self.knowledge_skills["medicine"].base = 5                          # 医学
-        self.knowledge_skills["occult"].base = 5                            # オカルト
-        self.knowledge_skills["chemistry"].base = 1                         # 化学
-        self.knowledge_skills["cthulhu_mythos"].base = 0                    # クトゥルフ神話
-        self.knowledge_skills["art"].base = 5                               # 芸術
-        self.knowledge_skills["accounting"].base = 10                       # 経理
-        self.knowledge_skills["archeology"].base = 1                        # 考古学
-        self.knowledge_skills["computer"].base = 1                          # コンピューター
-        self.knowledge_skills["psychology"].base = 5                        # 心理学
-        self.knowledge_skills["anthropology"].base = 1                      # 人類学
-        self.knowledge_skills["biology"].base = 1                           # 生物学
-        self.knowledge_skills["geology"].base = 1                           # 地質学
-        self.knowledge_skills["electronics"].base = 1                       # 電子工学
-        self.knowledge_skills["astronomy"].base = 1                         # 天文学
-        self.knowledge_skills["natural_history"].base = 10                  # 博物学
-        self.knowledge_skills["physics"].base = 1                           # 物理学
-        self.knowledge_skills["law"].base = 5                               # 法律
-        self.knowledge_skills["pharmacy"].base = 1                          # 薬学
-        self.knowledge_skills["history"].base = 20                          # 歴史
+        # スキル初期値作成
+        initializer = InitialValueOfSkills(self.DEX, self.EDU)
 
-        # 現在スキル値の再計算
+        # 現在スキル値の初期値設定と再計算
         skills = [self.combat_skills, self.search_skills, self.behavioral_skills, self.negotiation_skills, self.knowledge_skills]
         for skill in skills:
             for key in skill.keys():
                 skillset = skill[key]
+                skillset.base = initializer.get_value(key)
                 skillset.calculate()
 
         # SAN値
