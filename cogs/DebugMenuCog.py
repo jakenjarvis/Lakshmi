@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from typing import Union
+import random
 import asyncio
 import aiohttp
 
@@ -8,6 +9,11 @@ import discord
 from discord.ext import commands, menus
 
 import LakshmiErrors
+
+from contents.character.Investigator import Investigator
+from contents.character.generator.CharacterGenerator import CharacterGenerator
+from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
+from contents.character.generator.ParameterComplementary import ParameterComplementary
 
 class DebugMenuCog(commands.Cog, name='Debug開発系'):
     def __init__(self, bot):
@@ -73,6 +79,21 @@ class DebugMenuCog(commands.Cog, name='Debug開発系'):
                 if response.status == 200:
                     data = await response.json()
         return f'{data["kanji_name"]}({data["kana_name"]})'
+
+    @debug.group(aliases=['g'])
+    async def generate(self, context: commands.Context):
+
+        parameter = ParameterComplementary()
+
+        name = await self.generate_name(context, parameter.gender)
+
+        generator = CharacterGenerator()
+        generator.generate(parameter)
+        generator.investigator.personal_data.name = name
+
+        embed = InvestigatorEmbedCreator.create_generate_character_status(generator.investigator)
+
+        await self.bot.send(embed=embed)
 
 # --------------------------------------------------
 #

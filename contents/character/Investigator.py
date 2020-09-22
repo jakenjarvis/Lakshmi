@@ -3,6 +3,7 @@
 from typing import List, Dict
 from dataclasses import dataclass, fields, field
 
+import math
 import datetime
 import pytz
 
@@ -51,11 +52,24 @@ class AbilitySet:
         self.current = current
         return self
 
+    def set_initial_value(self, initial: int):
+        self.base = int(initial)
+        self.other = 0
+        self.temp = 0
+        self.current = int(initial)
+        return self
+
     def get_fullname(self):
         return f"{self.ability_name}"
 
     def to_display_string(self):
         return f"{self.ability_name}: {self.current}"
+
+    def to_full_display_string(self):
+        return f"{self.get_fullname()}: ({self.base}+{self.other}+{self.temp})= {self.current}"
+
+    def calculate(self):
+        self.current = int(self.base) + int(self.other) + int(self.temp)
 
 # 技能セット
 @dataclass
@@ -86,6 +100,16 @@ class SkillSet():
         self.current = current
         return self
 
+    def set_initial_value(self, initial: int):
+        self.growth_check = False
+        self.base = int(initial)
+        self.occupation = 0
+        self.interest = 0
+        self.growth = 0
+        self.other = 0
+        self.current = int(initial)
+        return self
+
     def get_fullname(self):
         result = ""
         if len(self.skill_subname.strip()) >= 1:
@@ -97,6 +121,12 @@ class SkillSet():
     def to_display_string(self):
         return f"{self.get_fullname()}: {self.current}"
 
+    def to_full_display_string(self):
+        return f"{self.get_fullname()}: ({self.base}+{self.occupation}+{self.interest}+{self.growth}+{self.other})= {self.current}"
+
+    def calculate(self):
+        self.current = int(self.base) + int(self.occupation) + int(self.interest) + int(self.growth) + int(self.other)
+
 # 技能ポイント
 @dataclass
 class SkillPoints:
@@ -106,6 +136,84 @@ class SkillPoints:
     max_interest: int = 0           # 最大興味ポイント
     additions_occupation: int = 0   # 追加職業ポイント
     additions_interest: int = 0     # 追加興味ポイント
+
+# スキルの初期値
+class InitialValueOfSkills():
+    def __init__(self, dex: int, edu: int):
+        self.values = {
+            # 戦闘技能
+            "dodge" : dex * 2,          # 回避
+            "kick" : 25,                # キック
+            "grapple" : 25,             # 組み付き
+            "fist_punch" : 50,          # こぶし(パンチ)
+            "head_butt" : 10,           # 頭突き
+            "throw" : 25,               # 投擲
+            "martial_arts" : 1,         # マーシャルアーツ
+            "handgun" : 20,             # 拳銃
+            "smg" : 15,                 # サブマシンガン
+            "shotgun" : 30,             # ショットガン
+            "machine_gun" : 15,         # マシンガン
+            "rifle" : 25,               # ライフル
+
+            # 探索技能
+            "first_aid" : 30,           # 応急手当
+            "locksmith" : 1,            # 鍵開け
+            "conceal" : 15,             # 隠す
+            "hide" : 10,                # 隠れる
+            "listen" : 25,              # 聞き耳
+            "sneak" : 10,               # 忍び歩き
+            "photography" : 10,         # 写真術
+            "psychoanalysis" : 1,       # 精神分析
+            "track" : 10,               # 追跡
+            "climb" : 40,               # 登攀
+            "library_use" : 25,         # 図書館
+            "spot_hidden" : 25,         # 目星
+
+            # 行動技能
+            "drive" : 20,               # 運転
+            "mech_repair" : 20,         # 機械修理
+            "opr_hvy_machine" : 1,      # 重機械操作
+            "ride" : 5,                 # 乗馬
+            "swim" : 25,                # 水泳
+            "craft" : 5,                # 製作
+            "pilot" : 1,                # 操縦
+            "jump" : 25,                # 跳躍
+            "electr_repair" : 10,       # 電気修理
+            "navigate" : 10,            # ナビゲート
+            "disguise" : 1,             # 変装
+
+            # 交渉技能
+            "fast_talk" : 5,            # 言いくるめ
+            "credit_rating" : 15,       # 信用
+            "persuade" : 15,            # 説得
+            "bargain" : 5,              # 値切り
+            "own_language" : edu * 5,   # 母国語
+            #"other_language" : 1,       # その他の言語(注)
+
+            # 知識技能
+            "medicine" : 5,             # 医学
+            "occult" : 5,               # オカルト
+            "chemistry" : 1,            # 化学
+            "cthulhu_mythos" : 0,       # クトゥルフ神話
+            "art" : 5,                  # 芸術
+            "accounting" : 10,          # 経理
+            "archeology" : 1,           # 考古学
+            "computer" : 1,             # コンピューター
+            "psychology" : 5,           # 心理学
+            "anthropology" : 1,         # 人類学
+            "biology" : 1,              # 生物学
+            "geology" : 1,              # 地質学
+            "electronics" : 1,          # 電子工学
+            "astronomy" : 1,            # 天文学
+            "natural_history" : 10,     # 博物学
+            "physics" : 1,              # 物理学
+            "law" : 5,                  # 法律
+            "pharmacy" : 1,             # 薬学
+            "history" : 20,             # 歴史
+        }
+
+    def get_value(self, key: str) -> int:
+        return int(self.values[key] if key in self.values else 1)
 
 # 探索者
 @dataclass
@@ -226,6 +334,8 @@ class Investigator:
     # 所持品・所持金
     # TODO:
 
+    # TODO: P40 ダメージボーナス
+
     # パーソナルデータ
     personal_data: PersonalData = field(default_factory=PersonalData)
     # 最終更新日時
@@ -305,3 +415,61 @@ class Investigator:
     @property
     def KNOWLEDGE(self):
         return self.characteristics["knowledge"].current
+
+    def calculate(self):
+        # 現在能力値の再計算
+        for key in self.characteristics.keys():
+            abilityset = self.characteristics[key]
+            abilityset.calculate()
+
+        # 能力値初期値の再計算
+        self.characteristics["hit_points"].set_initial_value(math.ceil((self.CON + self.SIZ) / 2))
+        self.characteristics["magic_points"].set_initial_value(self.POW * 1)
+        self.characteristics["initial_sanity"].set_initial_value(self.POW * 5)
+        self.characteristics["idea"].set_initial_value(self.INT * 5)
+        self.characteristics["luck"].set_initial_value(self.POW * 5)
+        self.characteristics["knowledge"].set_initial_value(self.EDU * 5)
+
+        # 現在能力値の再計算
+        for key in self.characteristics.keys():
+            abilityset = self.characteristics[key]
+            abilityset.calculate()
+
+        # スキル初期値作成
+        initializer = InitialValueOfSkills(self.DEX, self.EDU)
+
+        # 現在スキル値の初期値設定と再計算
+        skills = [self.combat_skills, self.search_skills, self.behavioral_skills, self.negotiation_skills, self.knowledge_skills]
+        for skill in skills:
+            for key in skill.keys():
+                skillset = skill[key]
+                skillset.base = initializer.get_value(key)
+                skillset.calculate()
+
+        # SAN値
+        self.sanity_points.max_insane = 99 - int(self.knowledge_skills["cthulhu_mythos"].current)
+        self.sanity_points.indef_insane = math.ceil(float(self.sanity_points.current) * 4.0 / 5.0)
+
+        # スキルポイントの合算
+        sum_skill_occupation = 0    # 職業P合計
+        sum_skill_interest = 0      # 趣味P合計
+        for skill in skills:
+            for key in skill.keys():
+                skillset = skill[key]
+                # 職業P合計
+                sum_skill_occupation += skillset.occupation
+                # 趣味P合計
+                sum_skill_interest += skillset.interest
+
+        # 技能
+        # 最大職業ポイント
+        self.skill_points.max_occupation = (self.EDU * 20) + self.skill_points.additions_occupation
+        # 最大興味ポイント
+        self.skill_points.max_interest = (self.INT * 10) + self.skill_points.additions_interest
+
+        # 残り職業ポイント
+        self.skill_points.remaining_occupation = self.skill_points.max_occupation - sum_skill_occupation
+        # 残り興味ポイント
+        self.skill_points.remaining_interest = self.skill_points.max_interest - sum_skill_interest
+
+        return self
