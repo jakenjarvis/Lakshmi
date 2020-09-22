@@ -107,6 +107,6 @@ class GeneratedSubSkill():
     def choice(self, key: str) -> str:
         # 上位ほど選ばれやすくする。
         target = self.subskills[key]
-        weights = list(reversed([math.ceil(100 / x ** 2.0) for x in range(1, len(target)+1)]))
+        weights = [math.ceil(100 / x ** 2.0) for x in range(1, len(target)+1)]
         result = random.choices(target, weights=weights, k=1)[0]
         return result

@@ -12,13 +12,19 @@ from contents.character.generator.GeneratedSubSkill import GeneratedSubSkill
 class GeneratedSkill():
     MATCH_SUB_SKILL_NAME = re.compile(r"^([^(]+)[(](.*)[)]$", re.IGNORECASE)
 
+    REASON_FIXED_BY_OCCUPATION = "OFIXC"
+    REASON_TWO_LIST_CHOICE_BY_OCCUPATION = "O2LC"
+    REASON_ONE_FREE_CHOICE_BY_OCCUPATION = "O1FC"
+    REASON_FREE_CHOICE_BY_INTEREST = "IFC"
+
     def __init__(self):
         self.skill_key: str = ""        # キー名
         self.skill_subkey: str = ""     # サブキー名
 
+        self.generated_subskill = GeneratedSubSkill()
         self.skill_subname = ""         # サブスキル名
 
-        self.generated_subskill = GeneratedSubSkill()
+        self.reason_for_choosing = ""   # 選択理由
 
     def set_definition(self, skill_definition: str):
         match = GeneratedSkill.MATCH_SUB_SKILL_NAME.search(skill_definition)
@@ -34,6 +40,22 @@ class GeneratedSkill():
                 self.skill_subname = self.generated_subskill.choice(self.skill_key)
             else:
                 self.skill_subname = self.skill_subkey
+        return self
+
+    def set_reason_fixed_by_occupation(self):
+        self.reason_for_choosing = GeneratedSkill.REASON_FIXED_BY_OCCUPATION
+        return self
+
+    def set_reason_two_list_choice_by_occupation(self):
+        self.reason_for_choosing = GeneratedSkill.REASON_TWO_LIST_CHOICE_BY_OCCUPATION
+        return self
+
+    def set_reason_one_free_choice_by_occupation(self):
+        self.reason_for_choosing = GeneratedSkill.REASON_ONE_FREE_CHOICE_BY_OCCUPATION
+        return self
+
+    def set_reason_free_choice_by_interest(self):
+        self.reason_for_choosing = GeneratedSkill.REASON_FREE_CHOICE_BY_INTEREST
         return self
 
     def to_display_string(self):

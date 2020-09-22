@@ -162,6 +162,7 @@ class CharacterAppearance():
 
         self.final_education = ""
 
+        self.appearance_rarity = ""
 
     def calculate(self, investigator: Investigator):
         self.investigator: Investigator = investigator
@@ -224,23 +225,31 @@ class CharacterAppearance():
         # STRがSIZ-3以上なら、筋肉質と判断する。
         muscle = (self.investigator.STR >= self.investigator.SIZ - 3)
 
+        body_type_rarity = ""
+
         # 体型
         self.body_type = "普通の体型"
         if muscle:
             # 筋肉体型
             if (fluctuation_height <= -4) and (fluctuation_weight >= 4):
+                body_type_rarity = "[BT-R]"
                 self.body_type = "ムキムキガッシリ体型"
             elif (fluctuation_height >= 4) and (fluctuation_weight <= -4):
+                body_type_rarity = "[BT-R]"
                 self.body_type = "スレンダー体型"
         else:
             # 肥満体型
             if (fluctuation_height <= -4) and (fluctuation_weight >= 4):
+                body_type_rarity = "[BT-R]"
                 self.body_type = "ムチムチぽっちゃり体型"
             elif (fluctuation_height >= 4) and (fluctuation_weight <= -4):
+                body_type_rarity = "[BT-R]"
                 self.body_type = "ガリガリ体型"
 
         self.body_type_tag = f"h{fluctuation_height}w{fluctuation_weight}"
 
+
+        hair_color_rarity = ""
 
         # 髪の色
         self.hair_color = random.choice(CharacterAppearance.NORMAL_COLOR)
@@ -250,10 +259,14 @@ class CharacterAppearance():
             lottery2 = random.randint(1, 100)
             if lottery2 <= 5:
                 # クリティカル
+                hair_color_rarity = "[HC-SR]"
                 self.hair_color = random.choice(CharacterAppearance.SUPER_RARE_COLOR)
             else:
                 # レア
+                hair_color_rarity = "[HC-R]"
                 self.hair_color = random.choice(CharacterAppearance.RARE_COLOR)
+
+        eye_color_rarity = ""
 
         # 瞳の色
         self.eye_color = random.choice(CharacterAppearance.NORMAL_COLOR)
@@ -263,6 +276,7 @@ class CharacterAppearance():
             lottery2 = random.randint(1, 100)
             if lottery2 <= 5:
                 # クリティカル
+                eye_color_rarity = "[EC-SR]"
                 self.eye_color = random.choice(CharacterAppearance.SUPER_RARE_COLOR)
 
         # 肌の色
@@ -404,3 +418,6 @@ class CharacterAppearance():
         else:
             # 小学生
             self.final_education = CharacterAppearance.EDUCATIONAL_BACKGROUND[age - 10]
+
+        # レア記録
+        self.appearance_rarity = f"{body_type_rarity}{hair_color_rarity}{eye_color_rarity}"

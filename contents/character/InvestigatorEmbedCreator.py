@@ -51,7 +51,8 @@ class InvestigatorEmbedCreator():
         # 探索者付随情報
         out_value = f""
         if len(char.tag) >= 1:
-            out_value += f"**TAG:**　`{char.tag.replace(' ','`　`')}`"
+            tag_string = " ".join([f"`{item.strip()}`" for item in char.tag.split(' ') if item.strip() != ""])
+            out_value += f"**TAG:** {tag_string}"
             out_value += f"\n"
         if len(char.personal_data.height.strip()) >= 1:
             out_value += f"`身長: {char.personal_data.height}`　"

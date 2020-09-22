@@ -13,6 +13,7 @@ class SkillPointDistributor():
 
         self.skills: List[str] = copy.deepcopy(skills)
         self.probabilitys: List[float] = copy.deepcopy(probabilitys)
+        print(self.probabilitys)
 
         if not (len(self.skills) == len(self.probabilitys) == len(self.current_values)):
             raise IndexError

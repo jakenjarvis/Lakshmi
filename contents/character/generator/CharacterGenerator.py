@@ -137,6 +137,7 @@ class CharacterGenerator():
         # 職業P: 確定リストからスキルを選択する。
         for skill_key in self.occupation.get_confirmed_list():
             generated_skill = GeneratedSkill().set_definition(skill_key)
+            generated_skill.set_reason_fixed_by_occupation()
             self.occupation_skills[generated_skill.skill_key] = generated_skill
 
             chooser_occupation_skills.chosen(generated_skill.skill_key)
@@ -156,9 +157,11 @@ class CharacterGenerator():
             two_skill_key = chooser_occupation_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_occupation)
 
             generated_skill = original_key_list[one_skill_key]
+            generated_skill.set_reason_two_list_choice_by_occupation()
             self.occupation_skills[one_skill_key] = generated_skill
 
             generated_skill = original_key_list[two_skill_key]
+            generated_skill.set_reason_two_list_choice_by_occupation()
             self.occupation_skills[two_skill_key] = generated_skill
 
             chooser_occupation_skills.set_narrowing_down_conditions()
@@ -169,6 +172,7 @@ class CharacterGenerator():
             skill_key = chooser_occupation_skills.choice_by_priority_weighting_rate(weighting_rate_for_occupation)
 
             generated_skill = GeneratedSkill().set_definition(skill_key)
+            generated_skill.set_reason_one_free_choice_by_occupation()
             self.occupation_skills[generated_skill.skill_key] = generated_skill
 
         print("----- occupation_skills")
@@ -224,6 +228,7 @@ class CharacterGenerator():
                     skill_key = chooser_interest_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_interest)
 
                     generated_skill = self.occupation_skills[skill_key]
+                    #generated_skill.set_reason_free_choice_by_interest() # ここは重複セットしてしまうので上書きしない。
                     self.interest_skills[skill_key] = generated_skill
                     #print(f"{skill}: {original_skill_name}")
                 else:
@@ -238,6 +243,7 @@ class CharacterGenerator():
                 skill_key = chooser_interest_skills.choice_by_priority_weighting_rate(weighting_rate_for_interest)
 
                 generated_skill = GeneratedSkill().set_definition(skill_key)
+                generated_skill.set_reason_free_choice_by_interest()
                 self.interest_skills[generated_skill.skill_key] = generated_skill
 
         print("----- interest_skills")
@@ -277,6 +283,33 @@ class CharacterGenerator():
 
         self.investigator.calculate()
 
+        # スキル構成文字列作成
+        skill_composition_string = ""
+        reason_fixed_by_occupations = []
+        reason_two_list_choice_by_occupations = []
+        reason_one_free_choice_by_occupations = []
+        for key, generated_skill in self.occupation_skills.items():
+            if generated_skill.reason_for_choosing == GeneratedSkill.REASON_FIXED_BY_OCCUPATION:
+                skillset: SkillSet = self.find_skillset(generated_skill.skill_key)
+                reason_fixed_by_occupations.append(skillset.get_fullname())
+            if generated_skill.reason_for_choosing == GeneratedSkill.REASON_TWO_LIST_CHOICE_BY_OCCUPATION:
+                skillset: SkillSet = self.find_skillset(generated_skill.skill_key)
+                reason_two_list_choice_by_occupations.append(skillset.get_fullname())
+            if generated_skill.reason_for_choosing == GeneratedSkill.REASON_ONE_FREE_CHOICE_BY_OCCUPATION:
+                skillset: SkillSet = self.find_skillset(generated_skill.skill_key)
+                reason_one_free_choice_by_occupations.append(skillset.get_fullname())
+        if len(reason_fixed_by_occupations) >= 1:
+            skill_composition_string += f"{'、'.join(reason_fixed_by_occupations)}"
+        if len(reason_two_list_choice_by_occupations) >= 1:
+            skill_composition_string += " ＋[ "
+            skill_composition_string += f"{'、'.join(reason_two_list_choice_by_occupations)}"
+            skill_composition_string += " ]"
+        if len(reason_one_free_choice_by_occupations) >= 1:
+            skill_composition_string += " ＋[ "
+            skill_composition_string += f"{'、'.join(reason_one_free_choice_by_occupations)}"
+            skill_composition_string += " ]"
+
+
         # 性別、年齢、職業
         self.investigator.unique_id = ulid.new()                                # Key
         self.investigator.site_id1 = ""                                         # SiteId1
@@ -309,13 +342,14 @@ class CharacterGenerator():
         self.investigator.personal_data.skin_color = self.appearance.skin_color # 肌の色
 
         # Tag
-        self.investigator.tag += f"{self.bloodtype.get_name()} {self.personality.get_key()} {self.appearance.body_type_tag}"
+        self.investigator.tag += f"{self.bloodtype.get_name()} {self.personality.get_key()} {self.appearance.body_type_tag} {self.appearance.appearance_rarity}"
 
         # for test
         buffer = []
         buffer.append(f"性格　: {self.bloodtype.get_description()}で、{self.personality.get_description()}")
         buffer.append(f"学歴　: {self.appearance.final_education}")
         buffer.append(f"体型　: {self.appearance.body_type}")
+        buffer.append(f"職業スキル構成　: {skill_composition_string}")
 
         #buffer.append(f"・職業P")
         #for key, value in self.occupation_skills.items():
