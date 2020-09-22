@@ -154,6 +154,7 @@ class CharacterAppearance():
         self.weight = ""
 
         self.body_type = ""
+        self.body_type_tag = ""
 
         self.hair_color = ""
         self.eye_color = ""
@@ -238,7 +239,7 @@ class CharacterAppearance():
             elif (fluctuation_height >= 4) and (fluctuation_weight <= -4):
                 self.body_type = "ガリガリ体型"
 
-        self.body_type = f"{self.body_type}({fluctuation_height},{fluctuation_weight})"
+        self.body_type_tag = f"h{fluctuation_height}w{fluctuation_weight}"
 
 
         # 髪の色

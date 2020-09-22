@@ -16,6 +16,7 @@ from contents.character.generator.CharacterBloodType import CharacterBloodType
 from contents.character.generator.PriorityRandomChooser import PriorityRandomChooser
 from contents.character.generator.SkillPointDistributor import SkillPointDistributor
 from contents.character.generator.CharacterAppearance import CharacterAppearance
+from contents.character.generator.GeneratedSkill import GeneratedSkill
 
 class CharacterGenerator():
     MATCH_SUB_SKILL_NAME = re.compile(r"^([^(]+)[(](.*)[)]$", re.IGNORECASE)
@@ -25,16 +26,6 @@ class CharacterGenerator():
 
     def dice(self, number: int, surface: int) -> int:
         return sum(random.randint(1, surface) for _ in range(number))
-
-    def split_definition_skill_name(self, definition_skill_name: str) -> Tuple[str, str]:
-        match = CharacterGenerator.MATCH_SUB_SKILL_NAME.search(definition_skill_name)
-        if match:
-            skill_name = str(match.group(1))
-            skill_subname = str(match.group(2))
-            result = (skill_name, skill_subname)
-        else:
-            result = (definition_skill_name, "")
-        return result
 
     def find_skillset(self, key: str) -> SkillSet:
         result: SkillSet = None
@@ -118,7 +109,7 @@ class CharacterGenerator():
         # 容姿
         self.appearance = CharacterAppearance()
 
-        # 職業から性格を選択
+        # 職業から性格を選択(その職業になるためにはそれなりの性格が必要と考える)
         self.personality.set_key(self.occupation.choice_personality(occupation))
 
         print("-----")
@@ -127,15 +118,15 @@ class CharacterGenerator():
         print(f"personality_key: {self.personality.get_key()} : {self.personality.get_description()}")
         print("-----")
 
-        # 取得スキル一時保持
-        self.occupation_skills: OrderedDict[str, str] = OrderedDict() # 職業ポイント
-        self.interest_skills: OrderedDict[str, str] = OrderedDict()   # 興味ポイント
+        # 取得スキル一時保持(選択したスキルの保持)
+        self.occupation_skills: OrderedDict[str, GeneratedSkill] = OrderedDict() # 職業ポイント
+        self.interest_skills: OrderedDict[str, GeneratedSkill] = OrderedDict()   # 興味ポイント
 
-        # 職業P用重み付け率
+        # 重み付け率(性格別の重み)
         weighting_rate_for_occupation = self.personality.get_weighting_rate_for_occupation()
         weighting_rate_for_interest = self.personality.get_weighting_rate_for_interest()
 
-        # 残スキル
+        # 残スキル管理(血液型別に優先順位を準備し、選択したものを除外していく)
         self.skills_priority = self.bloodtype.get_skills_priority()
         chooser_occupation_skills = PriorityRandomChooser(self.skills_priority)
         chooser_interest_skills = PriorityRandomChooser(self.skills_priority)
@@ -144,49 +135,45 @@ class CharacterGenerator():
         print("-----")
 
         # 職業P: 確定リストからスキルを選択する。
-        for target in self.occupation.get_confirmed_list():
-            skill_name, skill_subname = self.split_definition_skill_name(target)
-            #print(f"{target}: {skill_name}")
-            self.occupation_skills[skill_name] = target
+        for skill_key in self.occupation.get_confirmed_list():
+            generated_skill = GeneratedSkill().set_definition(skill_key)
+            self.occupation_skills[generated_skill.skill_key] = generated_skill
 
-            chooser_occupation_skills.chosen(skill_name)
+            chooser_occupation_skills.chosen(generated_skill.skill_key)
 
         # 職業P: ２つ選択リストから優先順に選択する。
-        priority_2_choice_skills_list = self.occupation.get_2_choice_skills()
-        if len(priority_2_choice_skills_list) >= 1:
-            original_key_list = {}
+        priority_2_choice_skill_definitions = self.occupation.get_2_choice_skills()
+        if len(priority_2_choice_skill_definitions) >= 1:
+            original_key_list: Dict[str, GeneratedSkill] = {}
             new_list = []
-            for item in priority_2_choice_skills_list:
-                skill_name, skill_subname = self.split_definition_skill_name(item)
-                new_list.append(skill_name)
-                original_key_list[skill_name] = item
+            for skill_key in priority_2_choice_skill_definitions:
+                generated_skill = GeneratedSkill().set_definition(skill_key)
+                new_list.append(generated_skill.skill_key)
+                original_key_list[generated_skill.skill_key] = generated_skill
 
             chooser_occupation_skills.set_narrowing_down_conditions(new_list)
-            one_skill = chooser_occupation_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_occupation)
-            two_skill = chooser_occupation_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_occupation)
-            #print(f"* ２つ選択: {one_skill}, {two_skill}")
+            one_skill_key = chooser_occupation_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_occupation)
+            two_skill_key = chooser_occupation_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_occupation)
 
-            original_skill_name = original_key_list[one_skill]
-            self.occupation_skills[one_skill] = original_skill_name
-            #print(f"{one_skill}: {original_skill_name}")
+            generated_skill = original_key_list[one_skill_key]
+            self.occupation_skills[one_skill_key] = generated_skill
 
-            original_skill_name = original_key_list[two_skill]
-            self.occupation_skills[two_skill] = original_skill_name
-            #print(f"{two_skill}: {original_skill_name}")
+            generated_skill = original_key_list[two_skill_key]
+            self.occupation_skills[two_skill_key] = generated_skill
 
             chooser_occupation_skills.set_narrowing_down_conditions()
 
         # 職業P: 残り１つ選択リストから優先順に選択する。
         choice_count = self.occupation.get_undetermined_skills()
         for _ in range(choice_count):
-            target = chooser_occupation_skills.choice_by_priority_weighting_rate(weighting_rate_for_occupation)
-            skill_name, skill_subname = self.split_definition_skill_name(target)
-            #print(f"{target}: {skill_name}")
-            self.occupation_skills[skill_name] = target
+            skill_key = chooser_occupation_skills.choice_by_priority_weighting_rate(weighting_rate_for_occupation)
+
+            generated_skill = GeneratedSkill().set_definition(skill_key)
+            self.occupation_skills[generated_skill.skill_key] = generated_skill
 
         print("----- occupation_skills")
-        for key, value in self.occupation_skills.items():
-            print(f"{key}: {value}")
+        for key, generated_skill in self.occupation_skills.items():
+            print(f"{key}: {generated_skill.to_display_string()}")
         print("-----")
 
         self.investigator.calculate()
@@ -208,6 +195,9 @@ class CharacterGenerator():
 
         for index, key in enumerate(skills):
             skillset: SkillSet = self.find_skillset(key)
+            generated_skill = self.occupation_skills[key]
+            if len(generated_skill.skill_subname) >= 1:
+                skillset.skill_subname = generated_skill.skill_subname
             skillset.occupation = distributor_occupation_skills.get_value(key)
 
         self.investigator.calculate()
@@ -231,13 +221,13 @@ class CharacterGenerator():
             for _ in range(duplicate_count):
                 # MAX85に到達している場合などで足りなくなるケースがある。
                 if chooser_interest_skills.is_choose_for_narrowing_down():
-                    skill = chooser_interest_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_interest)
+                    skill_key = chooser_interest_skills.narrowing_down_choice_by_priority_weighting_rate(weighting_rate_for_interest)
 
-                    original_skill_name = self.occupation_skills[skill]
-                    self.interest_skills[skill] = original_skill_name
+                    generated_skill = self.occupation_skills[skill_key]
+                    self.interest_skills[skill_key] = generated_skill
                     #print(f"{skill}: {original_skill_name}")
                 else:
-                    # 重複でスキルが選べなかった分、新しく取得する
+                    # 重複でスキルが選べなかった分は、新しく取得する
                     new_count += 1
 
             chooser_interest_skills.chosen_all_narrowing_down_conditions()
@@ -245,14 +235,14 @@ class CharacterGenerator():
         # 取得していない新しいスキルを個数分選択する。
         if new_count >= 1:
             for _ in range(new_count):
-                target = chooser_interest_skills.choice_by_priority_weighting_rate(weighting_rate_for_interest)
-                skill_name, skill_subname = self.split_definition_skill_name(target)
-                #print(f"{target}: {skill_name}")
-                self.interest_skills[skill_name] = target
+                skill_key = chooser_interest_skills.choice_by_priority_weighting_rate(weighting_rate_for_interest)
+
+                generated_skill = GeneratedSkill().set_definition(skill_key)
+                self.interest_skills[generated_skill.skill_key] = generated_skill
 
         print("----- interest_skills")
-        for key, value in self.interest_skills.items():
-            print(f"{key}: {value}")
+        for key, generated_skill in self.interest_skills.items():
+            print(f"{key}: {generated_skill.to_display_string()}")
         print("-----")
 
         self.investigator.calculate()
@@ -274,7 +264,16 @@ class CharacterGenerator():
 
         for index, key in enumerate(skills):
             skillset: SkillSet = self.find_skillset(key)
+            generated_skill = self.interest_skills[key]
+            if len(generated_skill.skill_subname) >= 1:
+                skillset.skill_subname = generated_skill.skill_subname
             skillset.interest = distributor_interest_skills.get_value(key)
+
+        # 母国語セット
+        # スキルが振られていなくても、サブスキル名はセットする。
+        if len(self.investigator.negotiation_skills["own_language"].skill_subname.strip()) == 0:
+            generated_skill = GeneratedSkill().set_definition("own_language")
+            self.investigator.negotiation_skills["own_language"].skill_subname = generated_skill.skill_subname
 
         self.investigator.calculate()
 
@@ -289,7 +288,7 @@ class CharacterGenerator():
         self.investigator.author_name = ""                                      # 所有者名
         self.investigator.active = False                                        # Active
         self.investigator.lost = False                                          # Lost
-        self.investigator.tag = ""                                              # タグ
+        self.investigator.tag = ""                                              # タグ ※後でセット
         self.investigator.image_url = ""                                        # 画像URL
 
         # パーソナルデータ
@@ -298,7 +297,7 @@ class CharacterGenerator():
         self.investigator.personal_data.age = age                               # 年齢
         self.investigator.personal_data.sex = sex                               # 性別
         self.investigator.personal_data.residence = ""                          # 居住地
-        self.investigator.personal_data.birthplace = ""                         # 出身地
+        self.investigator.personal_data.birthplace = "日本"                     # 出身地
 
         # 容姿計算(年齢セット後)
         self.appearance.calculate(self.investigator)
@@ -309,10 +308,12 @@ class CharacterGenerator():
         self.investigator.personal_data.eye_color = self.appearance.eye_color   # 瞳の色
         self.investigator.personal_data.skin_color = self.appearance.skin_color # 肌の色
 
+        # Tag
+        self.investigator.tag += f"{self.bloodtype.get_name()} {self.personality.get_key()} {self.appearance.body_type_tag}"
+
         # for test
         buffer = []
-        buffer.append(f"血液型: {self.bloodtype.get_name()} : {self.bloodtype.get_description()}")
-        buffer.append(f"性格　: {self.personality.get_key()} : {self.personality.get_description()}")
+        buffer.append(f"性格　: {self.bloodtype.get_description()}で、{self.personality.get_description()}")
         buffer.append(f"学歴　: {self.appearance.final_education}")
         buffer.append(f"体型　: {self.appearance.body_type}")
 

@@ -46,9 +46,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 5, "new_count": 3 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "responsible": {
                 "description": "責任感のある性格",
@@ -59,9 +59,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 8, "new_count": 0 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "gentle": {
                 "description": "穏やかで優しい性格",
@@ -72,9 +72,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 5, "new_count": 5 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "polite": {
                 "description": "礼儀正しく丁寧な性格",
@@ -85,9 +85,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 4, "new_count": 6 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "selfish": {
                 "description": "自己利益優先的な性格",
@@ -113,7 +113,7 @@ class CharacterPersonality(): # individuality?
                 # 職業Pのスキル分配率関数
                 "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(100 / x * 0.9) for x in range(1, n+1)],
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "sensitive": {
                 "description": "繊細で傷つきやすい性格",
@@ -126,7 +126,7 @@ class CharacterPersonality(): # individuality?
                 # 職業Pのスキル分配率関数
                 "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(100 / x * 0.8) for x in range(1, n+1)],
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "jealous": {
                 "description": "嫉妬しやすい性格",
@@ -137,7 +137,7 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 1, "new_count": 9 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
                 "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(100 / x * 0.9) for x in range(1, n+1)],
             },
@@ -152,7 +152,7 @@ class CharacterPersonality(): # individuality?
                 # 職業Pのスキル分配率関数
                 "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(100 / x * 0.9) for x in range(1, n+1)],
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "entertaining": {
                 "description": "人を楽しませるような面白い性格",
@@ -165,7 +165,7 @@ class CharacterPersonality(): # individuality?
                 # 職業Pのスキル分配率関数
                 "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(100 / x * 0.9) for x in range(1, n+1)],
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "evilchildish": {
                 "description": "意地悪で子供っぽい性格",
@@ -176,9 +176,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 0, "new_count": 10 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "lazyloose": {
                 "description": "怠惰でだらしない性格",
@@ -189,9 +189,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 6, "new_count": 12 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
             "unique": {
                 "description": "とても変わった例えようのない珍しい性格",
@@ -202,9 +202,9 @@ class CharacterPersonality(): # individuality?
                 # 趣味Pのスキル取得基本数（ポイントMAXにより増える可能性あり）
                 "number_of_interest_choices": { "duplicate_count": 4, "new_count": 17 },
                 # 職業Pのスキル分配率関数
-                "skill_distribution_rate_function_for_occupation": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_occupation": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
                 # 趣味Pのスキル分配率関数
-                "skill_distribution_rate_function_for_interest": lambda n: [math.ceil(x / 1.8) for x in range(1, n+1)],
+                "skill_distribution_rate_function_for_interest": lambda n: list(reversed([math.ceil(x / 1.8) for x in range(1, n+1)])),
             },
         }
 
