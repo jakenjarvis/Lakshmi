@@ -3,6 +3,7 @@
 from unittest import result
 import discord
 import itertools
+from collections import OrderedDict
 
 from contents.character.Investigator import Investigator, SkillSet
 
@@ -64,7 +65,9 @@ class InvestigatorEmbedCreator():
             out_value += f"`肌の色: {char.personal_data.skin_color}`　"
         if char.lost:
             out_value += f"`<ロスト>`　"
-        result.add_field(name="探索者付随情報", value=out_value, inline=False)
+
+        if len(out_value) >= 1:
+            result.add_field(name="探索者付随情報", value=out_value, inline=False)
 
     @staticmethod
     def __append_current_san_value(result: discord.Embed, char: Investigator):
@@ -207,5 +210,43 @@ class InvestigatorEmbedCreator():
         InvestigatorEmbedCreator.__append_characteristics(result, char, is_omitted_characteristics)
         # スキル
         InvestigatorEmbedCreator.__append_skills(result, char, is_change_from_initial_value)
+
+        return result
+
+    @staticmethod
+    def create_generate_character_status(char: Investigator) -> discord.Embed:
+        is_summarize_backstory = False
+        is_change_from_initial_value = False
+        is_omitted_characteristics = False
+
+        result = InvestigatorEmbedCreator.__create_information_embed(char, is_summarize_backstory)
+
+        # 現在SAN値
+        InvestigatorEmbedCreator.__append_current_san_value(result, char)
+
+        # スキルポイント
+        out_value = f""
+        out_value += f"職業P: {char.skill_points.remaining_occupation} / {char.skill_points.max_occupation} ({char.skill_points.additions_occupation})\n"
+        out_value += f"趣味P: {char.skill_points.remaining_interest} / {char.skill_points.max_interest} ({char.skill_points.additions_interest})\n"
+        result.add_field(name="スキルポイント", value=out_value, inline=False)
+
+        skills: OrderedDict = OrderedDict()
+        skills["特性"] = char.characteristics
+        skills["戦闘技能"] = char.combat_skills
+        skills["探索技能"] = char.search_skills
+        skills["行動技能"] = char.behavioral_skills
+        skills["交渉技能"] = char.negotiation_skills
+        skills["知識技能"] = char.knowledge_skills
+
+        for title, skill in skills.items():
+            out_value = f""
+            for key in skill.keys():
+                skillset = skill[key]
+                changed = "●" if skillset.base != skillset.current else "○"
+                out_value += f"{changed} {skillset.to_full_display_string()}\n".replace(":", ":\n")
+            result.add_field(name=title, value=out_value, inline=True)
+
+        # 探索者付随情報
+        InvestigatorEmbedCreator.__append_info_associated_with_investigator(result, char)
 
         return result

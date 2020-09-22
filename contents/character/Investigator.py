@@ -65,6 +65,9 @@ class AbilitySet:
     def to_display_string(self):
         return f"{self.ability_name}: {self.current}"
 
+    def to_full_display_string(self):
+        return f"{self.get_fullname()}: ({self.base}+{self.other}+{self.temp})= {self.current}"
+
     def calculate(self):
         self.current = int(self.base) + int(self.other) + int(self.temp)
 
@@ -117,6 +120,9 @@ class SkillSet():
 
     def to_display_string(self):
         return f"{self.get_fullname()}: {self.current}"
+
+    def to_full_display_string(self):
+        return f"{self.get_fullname()}: ({self.base}+{self.occupation}+{self.interest}+{self.growth}+{self.other})= {self.current}"
 
     def calculate(self):
         self.current = int(self.base) + int(self.occupation) + int(self.interest) + int(self.growth) + int(self.other)
