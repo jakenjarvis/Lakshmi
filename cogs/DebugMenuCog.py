@@ -13,6 +13,7 @@ import LakshmiErrors
 from contents.character.Investigator import Investigator
 from contents.character.generator.CharacterGenerator import CharacterGenerator
 from contents.character.InvestigatorEmbedCreator import InvestigatorEmbedCreator
+from contents.character.generator.ParameterComplementary import ParameterComplementary
 
 class DebugMenuCog(commands.Cog, name='Debug開発系'):
     def __init__(self, bot):
@@ -81,24 +82,13 @@ class DebugMenuCog(commands.Cog, name='Debug開発系'):
 
     @debug.group(aliases=['g'])
     async def generate(self, context: commands.Context):
-        occupations = [
-            "doctor_of_medicine", "engineer", "entertainer", "professor",
-            "zealot", "military_officer", "policeman", "police_detective",
-            "artist", "antiquarian", "author", "journalist",
-            "private_investigator", "spokesperson", "athlete", "clergyman",
-            "parapsychologist", "dilettante", "missionary", "tribal_member",
-            "farmer_forester", "pilot", "hacker_consultant", "criminal",
-            "soldier", "lawyer", "drifter", "musician",
-        ]
 
-        occupation = random.choice(occupations)
-        age = random.randint(12, 100)
-        gender = random.choice(["male", "female"])
+        parameter = ParameterComplementary()
 
-        name = await self.generate_name(context, gender)
+        name = await self.generate_name(context, parameter.gender)
 
         generator = CharacterGenerator()
-        generator.generate(gender, age, occupation)
+        generator.generate(parameter)
         generator.investigator.personal_data.name = name
 
         embed = InvestigatorEmbedCreator.create_generate_character_status(generator.investigator)

@@ -18,9 +18,9 @@ from contents.character.generator.SkillPointDistributor import SkillPointDistrib
 from contents.character.generator.CharacterAppearance import CharacterAppearance
 from contents.character.generator.GeneratedSkill import GeneratedSkill
 
-class CharacterGenerator():
-    MATCH_SUB_SKILL_NAME = re.compile(r"^([^(]+)[(](.*)[)]$", re.IGNORECASE)
+from contents.character.generator.ParameterComplementary import ParameterComplementary
 
+class CharacterGenerator():
     def __init__(self):
         self.investigator: Investigator = Investigator()
 
@@ -54,12 +54,9 @@ class CharacterGenerator():
             raise Exception
         return result
 
-    def generate(self, gender: str, age: int, occupation: str):
+    def generate(self, parameter: ParameterComplementary):
         # TODO: パラメータチェック
         # TODO: age <= 11 はエラーとする。
-
-        gender_dict = { "male" : "男", "female" : "女" }
-        sex = gender_dict[gender]
 
         # 能力値
         self.investigator.characteristics["strength"].set_initial_value(self.dice(3, 6))
@@ -80,7 +77,7 @@ class CharacterGenerator():
         self.investigator.calculate()
 
         # 年齢による能力値の増減修正
-        self.set_age_correction(int(age))
+        self.set_age_correction(parameter.age)
 
         self.investigator.calculate()
 
@@ -105,15 +102,15 @@ class CharacterGenerator():
         # 性格
         self.personality = CharacterPersonality()
         # 職業
-        self.occupation = CharacterOccupation(occupation)
+        self.occupation = CharacterOccupation(parameter.occupation)
         # 容姿
         self.appearance = CharacterAppearance()
 
         # 職業から性格を選択(その職業になるためにはそれなりの性格が必要と考える)
-        self.personality.set_key(self.occupation.choice_personality(occupation))
+        self.personality.set_key(self.occupation.choice_personality(parameter.occupation))
 
         print("-----")
-        print(f"{gender}, {age}歳, {occupation} : {self.occupation.get_name()}")
+        print(f"{parameter.gender}, {parameter.age}歳, {parameter.occupation} : {self.occupation.get_name()}")
         print(f"blood_type_key: {self.bloodtype.get_key()} : {self.bloodtype.get_name()} : {self.bloodtype.get_description()}")
         print(f"personality_key: {self.personality.get_key()} : {self.personality.get_description()}")
         print("-----")
@@ -230,7 +227,6 @@ class CharacterGenerator():
                     generated_skill = self.occupation_skills[skill_key]
                     #generated_skill.set_reason_free_choice_by_interest() # ここは重複セットしてしまうので上書きしない。
                     self.interest_skills[skill_key] = generated_skill
-                    #print(f"{skill}: {original_skill_name}")
                 else:
                     # 重複でスキルが選べなかった分は、新しく取得する
                     new_count += 1
@@ -327,8 +323,8 @@ class CharacterGenerator():
         # パーソナルデータ
         self.investigator.personal_data.name = ""                               # 名前
         self.investigator.personal_data.occupation = self.occupation.get_name() # 職業
-        self.investigator.personal_data.age = age                               # 年齢
-        self.investigator.personal_data.sex = sex                               # 性別
+        self.investigator.personal_data.age = parameter.age                     # 年齢
+        self.investigator.personal_data.sex = parameter.sex                     # 性別
         self.investigator.personal_data.residence = ""                          # 居住地
         self.investigator.personal_data.birthplace = "日本"                     # 出身地
 
@@ -350,16 +346,6 @@ class CharacterGenerator():
         buffer.append(f"学歴　: {self.appearance.final_education}")
         buffer.append(f"体型　: {self.appearance.body_type}")
         buffer.append(f"職業スキル構成　: {skill_composition_string}")
-
-        #buffer.append(f"・職業P")
-        #for key, value in self.occupation_skills.items():
-        #    skillset: SkillSet = self.find_skillset(key)
-        #    buffer.append(f"　{key}: {skillset.get_fullname()}: ({skillset.base}+{skillset.occupation}+{skillset.interest}+{skillset.growth}+{skillset.other})={skillset.current}")
-
-        #buffer.append(f"・趣味P")
-        #for key, value in self.interest_skills.items():
-        #    skillset: SkillSet = self.find_skillset(key)
-        #    buffer.append(f"　{key}: {skillset.get_fullname()}: ({skillset.base}+{skillset.occupation}+{skillset.interest}+{skillset.growth}+{skillset.other})={skillset.current}")
 
         self.investigator.personal_data.backstory = "\n".join(buffer)           # その他メモ
 

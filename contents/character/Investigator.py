@@ -448,7 +448,7 @@ class Investigator:
 
         # SAN値
         self.sanity_points.max_insane = 99 - int(self.knowledge_skills["cthulhu_mythos"].current)
-        self.sanity_points.indef_insane = int(self.sanity_points.max_insane) - int(self.sanity_points.current)
+        self.sanity_points.indef_insane = math.ceil(float(self.sanity_points.current) * 4.0 / 5.0)
 
         # スキルポイントの合算
         sum_skill_occupation = 0    # 職業P合計
